@@ -5,8 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useGitHubAuth } from '../hooks/useGitHubAuth';
 
 interface GitHubRepository {
-  id: string;
-  github_id: number;
+  id: number;
   name: string;
   full_name: string;
   description: string | null;
@@ -15,50 +14,47 @@ interface GitHubRepository {
   stargazers_count: number;
   forks_count: number;
   topics: string[];
+  private: boolean;
 }
 
 export function GitHubRepositoriesPage() {
   const navigate = useNavigate();
-  const { isConnected, isLoading: isAuthLoading, error: authError } = useGitHubAuth();
+  const { isConnected, isLoading: isAuthLoading, error: authError, providerToken } = useGitHubAuth();
   const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isImporting, setIsImporting] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!isAuthLoading) {
-      if (isConnected) {
-        setIsLoading(true);
-        fetchRepositories();
-      } else {
-        setError('GitHub account not connected. Please connect your GitHub account in settings.');
-        setIsLoading(false);
-      }
+    if (!isAuthLoading && isConnected && providerToken) {
+      setIsLoading(true);
+      fetchGitHubRepositories();
     }
-  }, [isAuthLoading, isConnected]);
+  }, [isAuthLoading, isConnected, providerToken]);
 
-  const fetchRepositories = async () => {
+  const fetchGitHubRepositories = async () => {
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: repos, error: reposError } = await supabase
-        .from('github_repositories')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('name');
-
-      if (reposError) throw reposError;
-      
-      if (!repos || repos.length === 0) {
-        setError('No repositories found. Please sync your GitHub repositories in settings.');
-      } else {
-        setRepositories(repos);
-        setError(null);
+      if (!providerToken) {
+        throw new Error('GitHub token not found');
       }
+
+      const response = await fetch('https://api.github.com/user/repos?per_page=100', {
+        headers: {
+          Authorization: `Bearer ${providerToken}`,
+          Accept: 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch repositories from GitHub');
+      }
+
+      const repos = await response.json();
+      setRepositories(repos);
+      setError(null);
     } catch (err) {
-      console.error('Error fetching repositories:', err);
-      setError('Failed to load repositories');
+      console.error('Error fetching GitHub repositories:', err);
+      setError('Failed to load repositories from GitHub');
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +69,26 @@ export function GitHubRepositoriesPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Create project
+      // First save repository to our database
+      const { error: repoError } = await supabase
+        .from('github_repositories')
+        .insert([{
+          user_id: user.id,
+          github_id: repo.id,
+          name: repo.name,
+          full_name: repo.full_name,
+          description: repo.description,
+          html_url: repo.html_url,
+          language: repo.language,
+          stargazers_count: repo.stargazers_count,
+          forks_count: repo.forks_count,
+          topics: repo.topics,
+          is_private: repo.private
+        }]);
+
+      if (repoError) throw repoError;
+
+      // Then create project
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert([{
