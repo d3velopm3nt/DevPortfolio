@@ -16,6 +16,7 @@ import { RepositoryProfilePage } from './pages/RepositoryProfilePage';
 import { ThemeProvider } from './context/ThemeContext';
 import { useAuthStore } from './store/authStore';
 import { supabase, isSupabaseReady } from './lib/supabase';
+import { TechFeedPage } from './pages/TechFeedPage';
 
 // Auth callback handler component
 function AuthCallback() {
@@ -239,6 +240,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <SettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/feed"
+                element={
+                  <ProtectedRoute>
+                    <TechFeedPage />
                   </ProtectedRoute>
                 }
               />

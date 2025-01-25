@@ -30,16 +30,16 @@ const mainMenuItems = [
     icon: Layout,
     path: '/portfolio',
     children: [
-      { path: '/portfolio/timeline', label: 'Timeline', icon: TimerIcon },
-      { path: '/portfolio/tech-stacks', label: 'Tech Stacks', icon: Code },
-      { path: '/portfolio/applications', label: 'Applications', icon: Layout },
-      { path: '/portfolio/projects', label: 'Projects', icon: FolderGit2 },
+      { path: '/timeline', label: 'Timeline', icon: TimerIcon },
+      { path: '/tech-stacks', label: 'Tech Stacks', icon: Code },
+      { path: '/applications', label: 'Applications', icon: Layout },
+      { path: '/projects', label: 'Projects', icon: FolderGit2 },
     ]
   },
   {
     label: 'Tech Feed',
     icon: Newspaper,
-    path: '/tech-feed',
+    path: '/feed',
   }
 ];
 
@@ -79,11 +79,10 @@ export function Navigation() {
               {mainMenuItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.path} className="relative group">
+                  <div key={item.path} className="relative group z-50">
                     {item.children ? (
                       <>
                         <button
-                          onClick={() => toggleDropdown(item.label)}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                             isActive(item.path)
                               ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
@@ -92,30 +91,23 @@ export function Navigation() {
                         >
                           <Icon className="w-4 h-4" />
                           {item.label}
-                          <ChevronDown 
-                            className={`w-4 h-4 transition-transform duration-200 ${
-                              openDropdown === item.label ? 'transform rotate-180' : ''
-                            }`}
-                          />
+                          <ChevronDown className="w-4 h-4" />
                         </button>
-                        {openDropdown === item.label && (
-                          <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700">
-                            {item.children.map((child) => {
-                              const ChildIcon = child.icon;
-                              return (
-                                <Link
-                                  key={child.path}
-                                  to={child.path}
-                                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                                  onClick={() => setOpenDropdown(null)}
-                                >
-                                  <ChildIcon className="w-4 h-4" />
-                                  {child.label}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        )}
+                        <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
+                          {item.children.map((child) => {
+                            const ChildIcon = child.icon;
+                            return (
+                              <Link
+                                key={child.path}
+                                to={child.path}
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                <ChildIcon className="w-4 h-4" />
+                                {child.label}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       </>
                     ) : (
                       <Link
@@ -135,9 +127,8 @@ export function Navigation() {
               })}
 
               {/* GitHub Status with Dropdown */}
-              <div className="relative group">
+              <div className="relative group z-40">
                 <button
-                  onClick={() => toggleDropdown('github')}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                     isActive('/github')
                       ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
@@ -153,42 +144,34 @@ export function Navigation() {
                   ) : (
                     'GitHub'
                   )}
-                  <ChevronDown 
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      openDropdown === 'github' ? 'transform rotate-180' : ''
-                    }`}
-                  />
+                  <ChevronDown className="w-4 h-4" />
                 </button>
-                {openDropdown === 'github' && (
-                  <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700">
-                    <Link
-                      to="/github/repositories"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setOpenDropdown(null)}
-                    >
-                      <FolderGit2 className="w-4 h-4" />
-                      Repositories
-                    </Link>
-                    <Link
-                      to="/github/settings"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setOpenDropdown(null)}
-                    >
-                      <Settings className="w-4 h-4" />
-                      GitHub Settings
-                    </Link>
-                  </div>
-                )}
+                <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-40">
+                  <Link
+                    to="/github/repositories"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <FolderGit2 className="w-4 h-4" />
+                    Repositories
+                  </Link>
+                  <Link
+                    to="/github/settings"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <Settings className="w-4 h-4" />
+                    GitHub Settings
+                  </Link>
+                </div>
               </div>
 
               {/* User Menu */}
-              <div className="relative group">
+              <div className="relative group z-30">
                 <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
                   <User className="w-4 h-4" />
                   <span className="max-w-[100px] truncate">{user.email}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
-                <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <div className="absolute right-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-30">
                   <Link
                     to="/settings"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
