@@ -32,9 +32,6 @@ export function useGitHubAuth() {
         return;
       }
 
-      const isGitHubUser = user.app_metadata?.provider === 'github';
-      const hasValidToken = !!session.provider_token;
-
       // Get additional GitHub info from profile
       const { data: profile } = await supabase
         .from('profiles')
@@ -42,8 +39,11 @@ export function useGitHubAuth() {
         .eq('id', user.id)
         .single();
 
+      // Check if user has ever connected with GitHub (even if current session is email)
+      const isGitHubConnected = !!profile?.github_username;
+      
       setState({
-        isConnected: isGitHubUser && hasValidToken,
+        isConnected: isGitHubConnected,
         isLoading: false,
         error: null,
         username: profile?.github_username,
