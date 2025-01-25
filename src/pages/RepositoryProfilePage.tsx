@@ -129,7 +129,7 @@ export function RepositoryProfilePage() {
 
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800">
+            <div className="p-3 rounded-xl bg-gray-100 dark:bg-[#2A2D35]">
               <Github className="w-6 h-6" />
             </div>
             <div>
@@ -147,7 +147,7 @@ export function RepositoryProfilePage() {
               href={repository.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white rounded-lg hover:bg-opacity-90"
             >
               <Github className="w-4 h-4" />
               View on GitHub
@@ -176,7 +176,7 @@ export function RepositoryProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {repository.readme_content && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 prose dark:prose-invert max-w-none">
+            <div className="bg-white dark:bg-[#232529] rounded-xl p-6 prose dark:prose-invert max-w-none">
               <ReactMarkdown>{repository.readme_content}</ReactMarkdown>
             </div>
           )}
@@ -184,7 +184,7 @@ export function RepositoryProfilePage() {
 
         <div className="space-y-6">
           {repository.dependencies && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
+            <div className="bg-white dark:bg-[#232529] rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <Package className="w-5 h-5" />
                 Dependencies
@@ -206,7 +206,7 @@ export function RepositoryProfilePage() {
           )}
 
           {repository.topics?.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
+            <div className="bg-white dark:bg-[#232529] rounded-xl p-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                 Topics
               </h2>
@@ -214,7 +214,7 @@ export function RepositoryProfilePage() {
                 {repository.topics.map((topic) => (
                   <span
                     key={topic}
-                    className="px-3 py-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full"
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-[#2A2D35] text-gray-600 dark:text-gray-400 rounded-full"
                   >
                     {topic}
                   </span>

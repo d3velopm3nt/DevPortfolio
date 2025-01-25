@@ -128,7 +128,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-[#1B1E23] dark:bg-[#1B1E23] transition-colors">
+        <div className="min-h-screen flex flex-col bg-[#d6deece0] dark:bg-[#1B1E23] transition-colors">
           <Navigation />
           
           <main className="flex-1">
@@ -256,9 +256,9 @@ export default function App() {
             </div>
           </main>
 
-          <footer className="border-t border-gray-800">
+          <footer className="border-t border-gray-200 dark:border-gray-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <p className="text-center text-gray-400">
+              <p className="text-center text-gray-600 dark:text-gray-400">
                 © {new Date().getFullYear()} DevPort. All rights reserved.
               </p>
             </div>

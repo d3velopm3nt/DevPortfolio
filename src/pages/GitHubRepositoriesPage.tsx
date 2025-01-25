@@ -206,7 +206,7 @@ export function GitHubRepositoriesPage() {
             return (
               <div
                 key={repo.id}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6"
+                className="bg-white dark:bg-[#232529] rounded-xl p-6"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
@@ -229,7 +229,7 @@ export function GitHubRepositoriesPage() {
                     {isImported ? (
                       <Link
                         to={`/github/repositories/${importedRepo.id}`}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
                       >
                         View Profile
                       </Link>
@@ -237,7 +237,11 @@ export function GitHubRepositoriesPage() {
                       <button
                         onClick={() => handleImportRepository(repo)}
                         disabled={isImporting === repo.id}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50"
+                        className={`flex items-center gap-2 px-4 py-2 ${
+                          isImported 
+                            ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                            : 'bg-indigo-600 text-white'
+                        } rounded-lg hover:bg-opacity-90 disabled:opacity-50`}
                       >
                         {isImporting === repo.id ? (
                           <>
@@ -277,7 +281,7 @@ export function GitHubRepositoriesPage() {
                     {repo.topics.map((topic) => (
                       <span
                         key={topic}
-                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full"
+                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-[#2A2D35] text-gray-600 dark:text-gray-400 rounded-full"
                       >
                         {topic}
                       </span>

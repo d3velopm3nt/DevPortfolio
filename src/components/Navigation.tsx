@@ -69,7 +69,7 @@ export function Navigation() {
   };
 
   return (
-    <nav className="border-b border-gray-800">
+    <nav className="bg-white dark:bg-[#232529] border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Theme Toggle */}
@@ -106,15 +106,15 @@ export function Navigation() {
                         <button
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                             isActive(item.path)
-                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                              ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                              : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
                           }`}
                         >
                           <Icon className="w-4 h-4" />
                           {item.label}
                           <ChevronDown className="w-4 h-4" />
                         </button>
-                        <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
+                        <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-[#232529] rounded-lg shadow-lg border dark:border-gray-800 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-50">
                           {item.children.map((child) => {
                             const ChildIcon = child.icon;
                             return (
@@ -135,8 +135,8 @@ export function Navigation() {
                         to={item.path}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                           isActive(item.path)
-                            ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                            ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -152,8 +152,8 @@ export function Navigation() {
                 <button
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                     isActive('/github')
-                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
                   }`}
                 >
                   <Github className="w-4 h-4" />
@@ -167,7 +167,7 @@ export function Navigation() {
                   )}
                   <ChevronDown className="w-4 h-4" />
                 </button>
-                <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-40">
+                <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-[#232529] rounded-lg shadow-lg border dark:border-gray-800 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-40">
                   <Link
                     to="/github/repositories"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -237,8 +237,8 @@ export function Navigation() {
                       onClick={() => toggleDropdown(item.label)}
                       className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium w-full ${
                         isActive(item.path)
-                          ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                          : 'text-gray-600 dark:text-gray-400'
+                          ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
                       }`}
                     >
                       <span className="flex items-center gap-2">
@@ -278,8 +278,8 @@ export function Navigation() {
                     to={item.path}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                       isActive(item.path)
-                        ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                        : 'text-gray-600 dark:text-gray-400'
+                        ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                        : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
