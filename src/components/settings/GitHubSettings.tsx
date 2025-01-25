@@ -136,59 +136,66 @@ export function GitHubSettings() {
 
     try {
       if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.provider_token) throw new Error('No GitHub token found');
 
-      // Fetch repositories from GitHub
-      const response = await fetch('https://api.github.com/user/repos', {
+      // Fetch repositories from GitHub using the provider_token
+      const response = await fetch('https://api.github.com/user/repos?per_page=100', {
         headers: {
-          Authorization: `Bearer ${profile?.github_access_token}`,
+          Authorization: `Bearer ${session.provider_token}`,
           Accept: 'application/vnd.github.v3+json'
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch repositories');
+      if (!response.ok) {
+        console.error('GitHub API Error:', await response.text());
+        throw new Error('Failed to fetch repositories');
+      }
 
       const repos = await response.json();
+      console.log('Fetched repositories:', repos);
 
       // Delete existing repositories
       await supabase
         .from('github_repositories')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', session.user.id);
 
-      // Insert new repositories
-      const { error: insertError } = await supabase
-        .from('github_repositories')
-        .insert(
-          repos.map((repo: any) => ({
-            user_id: user.id,
-            github_id: repo.id,
-            name: repo.name,
-            full_name: repo.full_name,
-            description: repo.description,
-            html_url: repo.html_url,
-            language: repo.language,
-            stargazers_count: repo.stargazers_count,
-            forks_count: repo.forks_count,
-            topics: repo.topics || []
-          }))
-        );
+      if (repos.length > 0) {
+        // Insert new repositories
+        const { error: insertError } = await supabase
+          .from('github_repositories')
+          .insert(
+            repos.map((repo: any) => ({
+              user_id: session.user.id,
+              github_id: repo.id,
+              name: repo.name,
+              full_name: repo.full_name,
+              description: repo.description,
+              html_url: repo.html_url,
+              language: repo.language,
+              stargazers_count: repo.stargazers_count,
+              forks_count: repo.forks_count,
+              topics: repo.topics || [],
+              is_private: repo.private
+            }))
+          );
 
-      if (insertError) throw insertError;
+        if (insertError) throw insertError;
+      }
 
       // Update last sync time
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ github_last_sync_at: new Date().toISOString() })
-        .eq('id', user.id);
+        .eq('id', session.user.id);
 
       if (updateError) throw updateError;
 
       await fetchProfile();
     } catch (err) {
       console.error('Error syncing repositories:', err);
-      setError('Failed to sync GitHub repositories');
+      setError(err instanceof Error ? err.message : 'Failed to sync GitHub repositories');
     } finally {
       setIsSyncing(false);
     }

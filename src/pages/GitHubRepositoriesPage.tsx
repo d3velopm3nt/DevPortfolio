@@ -29,18 +29,16 @@ export function GitHubRepositoriesPage() {
 
   const fetchRepositories = async () => {
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
+      
+      // Get both user and session
       const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!user) throw new Error('Not authenticated');
 
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('github_access_token, github_username')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      if (!profile.github_access_token) {
+      // Check for GitHub connection using provider_token
+      if (!session?.provider_token || user.app_metadata?.provider !== 'github') {
         setError('GitHub account not connected. Please connect your GitHub account in settings.');
         setIsLoading(false);
         return;
@@ -53,7 +51,13 @@ export function GitHubRepositoriesPage() {
         .order('name');
 
       if (reposError) throw reposError;
-      setRepositories(repos);
+      
+      if (!repos || repos.length === 0) {
+        // No repositories found, might need to sync
+        setError('No repositories found. Please sync your GitHub repositories in settings.');
+      } else {
+        setRepositories(repos);
+      }
     } catch (err) {
       console.error('Error fetching repositories:', err);
       setError('Failed to load repositories');
@@ -67,6 +71,7 @@ export function GitHubRepositoriesPage() {
     setError(null);
 
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
