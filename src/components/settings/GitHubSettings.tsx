@@ -9,6 +9,7 @@ export function GitHubSettings() {
     github_username: string | null;
     github_access_token: string | null;
     github_last_sync_at: string | null;
+    isGitHubConnected: boolean;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,12 +17,35 @@ export function GitHubSettings() {
 
   useEffect(() => {
     fetchProfile();
+    const checkGitHubConnection = async () => {
+      const response = await supabase?.auth.getSession();
+      const session = response?.data?.session;
+      const isConnected = !!session?.provider_token && session?.user?.app_metadata?.provider === 'github';
+      // Update your UI accordingly
+    };
+
+    checkGitHubConnection();
   }, []);
 
   const fetchProfile = async () => {
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
+      
+      // Get user and session info
       const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!user) throw new Error('Not authenticated');
+
+      console.log('Auth Debug:', {
+        provider: user.app_metadata?.provider,
+        hasProviderToken: !!session?.provider_token,
+        user: user
+      });
+
+      // Check GitHub connection status
+      const isGitHubUser = user.app_metadata?.provider === 'github';
+      const hasValidToken = !!session?.provider_token;
 
       const { data, error } = await supabase
         .from('profiles')
@@ -30,7 +54,18 @@ export function GitHubSettings() {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+
+      console.log('Profile Debug:', {
+        isGitHubUser,
+        hasValidToken,
+        githubUsername: data.github_username,
+        hasAccessToken: !!data.github_access_token
+      });
+
+      setProfile({
+        ...data,
+        isGitHubConnected: isGitHubUser && hasValidToken
+      });
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError('Failed to load GitHub settings');
@@ -41,14 +76,15 @@ export function GitHubSettings() {
 
   const handleConnect = async () => {
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
       const { data: { url }, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
           scopes: 'repo read:user',
           redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: {
-            state: JSON.stringify({ from: location.pathname })
-          }
+          // queryParams: {
+          //   state: JSON.stringify({ from: location.pathname })
+          // }
         }
       });
 
@@ -64,6 +100,7 @@ export function GitHubSettings() {
     if (!window.confirm('Are you sure you want to disconnect your GitHub account?')) return;
 
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -98,6 +135,7 @@ export function GitHubSettings() {
     setError(null);
 
     try {
+      if (!supabase) throw new Error('Supabase client not initialized');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -188,11 +226,16 @@ export function GitHubSettings() {
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">
                 {profile?.github_username ? (
-                  <>Connected as {profile.github_username}</>
+                  <>Connected as @{profile.github_username}</>
                 ) : (
                   'GitHub Account'
                 )}
               </h3>
+              {profile?.isGitHubConnected && (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ Connected
+                </p>
+              )}
               {profile?.github_last_sync_at && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">
                   Last synced: {new Date(profile.github_last_sync_at).toLocaleString()}
@@ -202,7 +245,7 @@ export function GitHubSettings() {
           </div>
 
           <div className="flex items-center gap-4">
-            {profile?.github_access_token ? (
+            {profile?.isGitHubConnected ? (
               <>
                 <button
                   onClick={handleSync}

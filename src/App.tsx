@@ -19,53 +19,39 @@ import { supabase, isSupabaseReady } from './lib/supabase';
 // Auth callback handler component
 function AuthCallback() {
   const navigate = useNavigate();
-  const location = useLocation();
   const setUser = useAuthStore(state => state.setUser);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the session from the URL
-        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!supabase) throw new Error('Supabase client not initialized');
+        const response = await supabase?.auth.getSession();
+        if (!response) throw new Error('Supabase client not initialized');
+        
+        const { data: { session }, error } = response;
         
         if (error) throw error;
         
         if (session) {
           setUser(session.user);
-          
-          // Get the GitHub access token from the provider token
-          const { provider_token } = session;
-          
-          if (provider_token) {
-            // Update the user's profile with the GitHub token
-            await supabase
+
+          // Store GitHub token if present
+          if (session.provider_token) {
+            const { error: updateError } = await supabase
               .from('profiles')
               .update({
-                github_access_token: provider_token,
+                github_access_token: session.provider_token,
+                github_username: session.user.user_metadata.user_name,
                 github_last_sync_at: new Date().toISOString()
               })
               .eq('id', session.user.id);
-          }
 
-          // Get the state parameter from the URL if it exists
-          const params = new URLSearchParams(location.search);
-          const state = params.get('state');
-          let redirectPath = '/dashboard';
-
-          // If there's state information, parse it for the redirect path
-          if (state) {
-            try {
-              const stateData = JSON.parse(state);
-              if (stateData.from) {
-                redirectPath = stateData.from;
-              }
-            } catch (e) {
-              console.error('Error parsing state:', e);
+            if (updateError) {
+              console.error('Error storing GitHub token:', updateError);
             }
           }
 
-          // Redirect to the appropriate page
-          navigate(redirectPath, { replace: true });
+          navigate('/dashboard', { replace: true });
         } else {
           navigate('/auth', { replace: true });
         }
@@ -76,7 +62,7 @@ function AuthCallback() {
     };
 
     handleAuthCallback();
-  }, [location, navigate, setUser]);
+  }, [navigate, setUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, isSupabaseReady } from '../lib/supabase';
 import { Lock, Mail, Loader2, Github } from 'lucide-react';
@@ -9,7 +9,18 @@ export function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isGitHubConnected, setIsGitHubConnected] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkGitHubConnection = async () => {
+      const response = await supabase?.auth.getSession();
+      const session = response?.data?.session;
+      setIsGitHubConnected(!!session?.provider_token && session?.user?.app_metadata?.provider === 'github');
+    };
+
+    checkGitHubConnection();
+  }, []);
 
   if (!isSupabaseReady || !supabase) {
     return (
@@ -27,11 +38,10 @@ export function AuthPage() {
     setError(null);
 
     try {
-      const { error: authError } = isSignUp
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
-
-      if (authError) throw authError;
+      const response = isSignUp
+        ? await supabase?.auth.signUp({ email, password })
+        : await supabase?.auth.signInWithPassword({ email, password });
+      if (!response) throw new Error('Supabase client not initialized');
 
       navigate('/dashboard');
     } catch (err) {
@@ -43,18 +53,23 @@ export function AuthPage() {
 
   const handleGitHubAuth = async () => {
     try {
-      // Get the site URL from environment variables, fallback to current origin for development
-      const siteUrl = import.meta.env.VITE_SITE_URL || window.location.origin;
+      const redirectUrl = process.env.NODE_ENV === 'development' 
+        ? 'http://localhost:5173/auth/callback'
+        : `${window.location.origin}/auth/callback`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const response = await supabase?.auth.signInWithOAuth({
         provider: 'github',
         options: {
           scopes: 'repo read:user',
-          redirectTo: `${siteUrl}/dashboard`
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
         }
       });
-
-      if (error) throw error;
+      
+      if (!response) throw new Error('Supabase client not initialized');
+      if (response.error) throw response.error;
+      if (response.data.url) window.location.href = response.data.url;
+      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with GitHub');
     }
@@ -75,14 +90,20 @@ export function AuthPage() {
           )}
 
           <div className="space-y-6">
-            {/* GitHub Sign In */}
+            {/* GitHub Sign In Button */}
             <button
               onClick={handleGitHubAuth}
               className="w-full flex items-center justify-center gap-3 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600"
             >
               <Github className="w-5 h-5" />
-              Continue with GitHub
+              {isGitHubConnected ? 'GitHub Connected' : 'Continue with GitHub'}
             </button>
+
+            {isGitHubConnected && (
+              <p className="text-sm text-green-600 dark:text-green-400 text-center">
+                ✓ GitHub account connected
+              </p>
+            )}
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
