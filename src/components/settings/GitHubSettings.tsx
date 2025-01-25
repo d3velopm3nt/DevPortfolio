@@ -25,7 +25,12 @@ export function GitHubSettings() {
     try {
       if (!supabase) throw new Error('Supabase client not initialized');
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.provider_token) throw new Error('No GitHub token found');
+      
+      if (!session?.provider_token) {
+        // Need to reconnect to GitHub
+        setError('Please reconnect your GitHub account to sync repositories');
+        return;
+      }
 
       // Fetch repositories from GitHub using the provider_token
       const response = await fetch('https://api.github.com/user/repos?per_page=100', {

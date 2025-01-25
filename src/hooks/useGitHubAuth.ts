@@ -39,8 +39,9 @@ export function useGitHubAuth() {
         .eq('id', user.id)
         .single();
 
-      // Check if user has ever connected with GitHub (even if current session is email)
-      const isGitHubConnected = !!profile?.github_username;
+      // Need both username and valid token for full connection
+      const hasValidToken = !!session.provider_token;
+      const isGitHubConnected = !!profile?.github_username && hasValidToken;
       
       setState({
         isConnected: isGitHubConnected,
