@@ -128,7 +128,12 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-[#d6deece0] dark:bg-[#1B1E23] transition-colors">
+        <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#e7ebf3e0] via-[#f0f3f9] to-[#e7ebf3e0] dark:bg-gradient-to-br dark:from-[#1B1E23] dark:via-[#1f2329] dark:to-[#1B1E23] transition-colors">
+          <div className="fixed inset-0 -z-10">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-transparent to-transparent dark:from-blue-900/10"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-100/40 via-transparent to-transparent dark:from-indigo-900/10"></div>
+          </div>
+
           <Navigation />
           
           <main className="flex-1">
