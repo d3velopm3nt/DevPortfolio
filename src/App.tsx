@@ -12,6 +12,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/AuthPage';
 import { GitHubRepositoriesPage } from './pages/GitHubRepositoriesPage';
+import { RepositoryProfilePage } from './pages/RepositoryProfilePage';
 import { ThemeProvider } from './context/ThemeContext';
 import { useAuthStore } from './store/authStore';
 import { supabase, isSupabaseReady } from './lib/supabase';
@@ -190,6 +191,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <GitHubRepositoriesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/github/repositories/:id"
+                element={
+                  <ProtectedRoute>
+                    <RepositoryProfilePage />
                   </ProtectedRoute>
                 }
               />
