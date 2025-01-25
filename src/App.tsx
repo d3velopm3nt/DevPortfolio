@@ -128,10 +128,10 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
           <Navigation />
           
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -254,7 +254,7 @@ export default function App() {
             </Routes>
           </main>
 
-          <footer className="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-auto">
+          <footer className="bg-white dark:bg-gray-800 border-t dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <p className="text-center text-gray-600 dark:text-gray-400">
                 © {new Date().getFullYear()} DevFolio. All rights reserved.

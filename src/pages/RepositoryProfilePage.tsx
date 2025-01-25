@@ -35,15 +35,28 @@ export function RepositoryProfilePage() {
         if (!isConnected || !providerToken) {
           throw new Error('GitHub not connected');
         }
+        if (!supabase) throw new Error('Supabase client not initialized');
+        // First get the repository details from our database
+        const { data: repoData, error: dbError } = await supabase
+          .from('github_repositories')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-        const response = await fetch(`https://api.github.com/repositories/${id}`, {
+        if (dbError) throw new Error('Repository not found in database');
+
+        // Then fetch fresh data from GitHub API using the full_name
+        const response = await fetch(`https://api.github.com/repos/${repoData.full_name}`, {
           headers: {
-            'Authorization': `token ${providerToken}`,
-            'Accept': 'application/vnd.github.v3+json',
+            Authorization: `token ${providerToken}`,
+            Accept: 'application/vnd.github.v3+json'
           }
         });
 
         if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Repository not found on GitHub');
+          }
           if (response.status === 401) {
             throw new Error('GitHub authentication failed. Please reconnect your GitHub account.');
           }
@@ -78,18 +91,19 @@ export function RepositoryProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-600 dark:text-gray-400">Loading repository...</p>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600 dark:text-red-400">
+      <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">Error:</span>
           {error}
-        </p>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Github, ArrowLeft, Plus, Loader2, Star, GitFork, Code2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useGitHubAuth } from '../hooks/useGitHubAuth';
@@ -17,6 +17,12 @@ interface GitHubRepository {
   private: boolean;
 }
 
+interface ImportedRepository {
+  github_id: number;
+  id: string;
+  project_id: string | null;
+}
+
 export function GitHubRepositoriesPage() {
   const navigate = useNavigate();
   const { isConnected, isLoading: isAuthLoading, error: authError, providerToken } = useGitHubAuth();
@@ -24,11 +30,15 @@ export function GitHubRepositoriesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState<number | null>(null);
+  const [importedRepos, setImportedRepos] = useState<ImportedRepository[]>([]);
 
   useEffect(() => {
     if (!isAuthLoading && isConnected && providerToken) {
       setIsLoading(true);
-      fetchGitHubRepositories();
+      Promise.all([
+        fetchGitHubRepositories(),
+        fetchImportedRepositories()
+      ]).finally(() => setIsLoading(false));
     }
   }, [isAuthLoading, isConnected, providerToken]);
 
@@ -55,8 +65,24 @@ export function GitHubRepositoriesPage() {
     } catch (err) {
       console.error('Error fetching GitHub repositories:', err);
       setError('Failed to load repositories from GitHub');
-    } finally {
-      setIsLoading(false);
+    }
+  };
+
+  const fetchImportedRepositories = async () => {
+    try {
+      if (!supabase) throw new Error('Supabase client not initialized');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('github_repositories')
+        .select('github_id, id, project_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setImportedRepos(data || []);
+    } catch (err) {
+      console.error('Error fetching imported repositories:', err);
     }
   };
 
@@ -129,6 +155,10 @@ export function GitHubRepositoriesPage() {
     }
   };
 
+  const getImportedRepo = (githubId: number) => {
+    return importedRepos.find(repo => repo.github_id === githubId);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header - Always visible */}
@@ -171,80 +201,94 @@ export function GitHubRepositoriesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {repositories.map((repo) => (
-            <div
-              key={repo.id}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
-                    {repo.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {repo.description || repo.full_name}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <a
-                    href={repo.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Github className="w-5 h-5" />
-                  </a>
-                  <button
-                    onClick={() => handleImportRepository(repo)}
-                    disabled={isImporting === repo.id}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50"
-                  >
-                    {isImporting === repo.id ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Importing...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4" />
-                        Import
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
+          {repositories.map((repo) => {
+            const importedRepo = getImportedRepo(repo.id);
+            const isImported = !!importedRepo;
 
-              <div className="flex items-center gap-6 text-sm">
-                {repo.language && (
+            return (
+              <div
+                key={repo.id}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+                      {repo.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {repo.description || repo.full_name}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href={repo.html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Github className="w-5 h-5" />
+                    </a>
+                    {isImported ? (
+                      <Link
+                        to={`/github/repositories/${importedRepo.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+                      >
+                        View Profile
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => handleImportRepository(repo)}
+                        disabled={isImporting === repo.id}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50"
+                      >
+                        {isImporting === repo.id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Importing...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-4 h-4" />
+                            Import
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6 text-sm">
+                  {repo.language && (
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                      <Code2 className="w-4 h-4" />
+                      {repo.language}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                    <Code2 className="w-4 h-4" />
-                    {repo.language}
+                    <Star className="w-4 h-4" />
+                    {repo.stargazers_count}
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <GitFork className="w-4 h-4" />
+                    {repo.forks_count}
+                  </div>
+                </div>
+
+                {repo.topics && repo.topics.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {repo.topics.map((topic) => (
+                      <span
+                        key={topic}
+                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full"
+                      >
+                        {topic}
+                      </span>
+                    ))}
                   </div>
                 )}
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <Star className="w-4 h-4" />
-                  {repo.stargazers_count}
-                </div>
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <GitFork className="w-4 h-4" />
-                  {repo.forks_count}
-                </div>
               </div>
-
-              {repo.topics && repo.topics.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {repo.topics.map((topic) => (
-                    <span
-                      key={topic}
-                      className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full"
-                    >
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
 
           {repositories.length === 0 && (
             <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
