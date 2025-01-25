@@ -149,40 +149,64 @@ export function Navigation() {
 
               {/* GitHub Status with Dropdown */}
               <div className="relative group z-40">
-                <button
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                    isActive('/github')
-                      ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                      : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
-                  }`}
-                >
-                  <Github className="w-4 h-4" />
-                  {isConnected ? (
+                {isConnected ? (
+                  <button
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
+                      isActive('/github')
+                        ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
+                        : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                    }`}
+                  >
+                    <Github className="w-4 h-4" />
                     <span className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                       {username}
                     </span>
-                  ) : (
-                    'GitHub'
-                  )}
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-[#232529] rounded-lg shadow-lg border dark:border-gray-800 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-40">
-                  <Link
-                    to="/github/repositories"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    <ChevronDown className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={async () => {
+                      try {
+                        if (!supabase) throw new Error('Supabase client not initialized');
+                        const { data: { url }, error } = await supabase.auth.signInWithOAuth({
+                          provider: 'github',
+                          options: {
+                            scopes: 'repo read:user',
+                            redirectTo: `${window.location.origin}/auth/callback`
+                          }
+                        });
+
+                        if (error) throw error;
+                        if (url) window.location.href = url;
+                      } catch (err) {
+                        console.error('Error connecting GitHub:', err);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-[#2A2D35] text-white rounded-lg hover:bg-gray-800"
                   >
-                    <FolderGit2 className="w-4 h-4" />
-                    Repositories
-                  </Link>
-                  <Link
-                    to="/github/settings"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  >
-                    <Settings className="w-4 h-4" />
-                    GitHub Settings
-                  </Link>
-                </div>
+                    <Github className="w-4 h-4" />
+                    Connect GitHub
+                  </button>
+                )}
+                {isConnected && (
+                  <div className="absolute left-0 w-48 mt-2 py-2 bg-white dark:bg-[#232529] rounded-lg shadow-lg border dark:border-gray-800 invisible group-hover:visible opacity-0 group-hover:opacity-100 transition-all duration-200 z-40">
+                    <Link
+                      to="/github/repositories"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <FolderGit2 className="w-4 h-4" />
+                      Repositories
+                    </Link>
+                    <Link
+                      to="/github/settings"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Settings className="w-4 h-4" />
+                      GitHub Settings
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* User Menu */}
@@ -293,45 +317,73 @@ export function Navigation() {
 
           {/* GitHub Mobile Menu */}
           <div>
-            <button
-              onClick={() => toggleDropdown('github')}
-              className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 w-full"
-            >
-              <span className="flex items-center gap-2">
+            {isConnected ? (
+              <>
+                <button
+                  onClick={() => toggleDropdown('github')}
+                  className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 w-full"
+                >
+                  <span className="flex items-center gap-2">
+                    <Github className="w-4 h-4" />
+                    {username}
+                  </span>
+                  <ChevronDown 
+                    className={`w-4 h-4 transition-transform duration-200 ${
+                      openDropdown === 'github' ? 'transform rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {openDropdown === 'github' && (
+                  <div className="pl-4 space-y-1">
+                    <Link
+                      to="/github/repositories"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400"
+                      onClick={() => {
+                        setOpenDropdown(null);
+                        setIsOpen(false);
+                      }}
+                    >
+                      <FolderGit2 className="w-4 h-4" />
+                      Repositories
+                    </Link>
+                    <Link
+                      to="/github/settings"
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400"
+                      onClick={() => {
+                        setOpenDropdown(null);
+                        setIsOpen(false);
+                      }}
+                    >
+                      <Settings className="w-4 h-4" />
+                      GitHub Settings
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={async () => {
+                  try {
+                    if (!supabase) throw new Error('Supabase client not initialized');
+                    const { data: { url }, error } = await supabase.auth.signInWithOAuth({
+                      provider: 'github',
+                      options: {
+                        scopes: 'repo read:user',
+                        redirectTo: `${window.location.origin}/auth/callback`
+                      }
+                    });
+
+                    if (error) throw error;
+                    if (url) window.location.href = url;
+                  } catch (err) {
+                    console.error('Error connecting GitHub:', err);
+                  }
+                }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gray-900 dark:bg-[#2A2D35] w-full"
+              >
                 <Github className="w-4 h-4" />
-                {isConnected ? `GitHub (${username})` : 'GitHub'}
-              </span>
-              <ChevronDown 
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  openDropdown === 'github' ? 'transform rotate-180' : ''
-                }`}
-              />
-            </button>
-            {openDropdown === 'github' && (
-              <div className="pl-4 space-y-1">
-                <Link
-                  to="/github/repositories"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400"
-                  onClick={() => {
-                    setOpenDropdown(null);
-                    setIsOpen(false);
-                  }}
-                >
-                  <FolderGit2 className="w-4 h-4" />
-                  Repositories
-                </Link>
-                <Link
-                  to="/github/settings"
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400"
-                  onClick={() => {
-                    setOpenDropdown(null);
-                    setIsOpen(false);
-                  }}
-                >
-                  <Settings className="w-4 h-4" />
-                  GitHub Settings
-                </Link>
-              </div>
+                Connect GitHub
+              </button>
             )}
           </div>
 
