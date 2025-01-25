@@ -161,7 +161,6 @@ export function GitHubRepositoriesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header - Always visible */}
       <div>
         <button
           onClick={() => navigate('/projects')}
@@ -194,7 +193,6 @@ export function GitHubRepositoriesPage() {
         </div>
       )}
 
-      {/* Content area with loading states */}
       {(isAuthLoading || isLoading) ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />

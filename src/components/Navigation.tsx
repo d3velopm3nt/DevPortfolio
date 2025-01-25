@@ -13,11 +13,15 @@ import {
   Code,
   Layout,
   Newspaper,
-  ChevronDown
+  ChevronDown,
+  Sun,
+  Moon,
+  Terminal
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { supabase } from '../lib/supabase';
 import { useGitHubAuth } from '../hooks/useGitHubAuth';
+import { useTheme } from '../context/ThemeContext';
 
 const mainMenuItems = [
   { 
@@ -48,6 +52,7 @@ export function Navigation() {
   const location = useLocation();
   const { user } = useAuthStore();
   const { isConnected, username } = useGitHubAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -67,10 +72,26 @@ export function Navigation() {
     <nav className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            DevFolio
-          </Link>
+          {/* Logo and Theme Toggle */}
+          <div className="flex items-center gap-4">
+            <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+              <Terminal className="w-6 h-6" />
+              DevPort
+            </Link>
+            
+            {/* Theme Toggle moved here */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+          </div>
 
           {/* Desktop Navigation */}
           {user && (
@@ -192,18 +213,20 @@ export function Navigation() {
           )}
 
           {/* Mobile menu button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {user && (
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg"
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Mobile Navigation */}
       {isOpen && user && (
-        <div className="md:hidden px-2 pt-2 pb-3 space-y-1">
+        <div className="md:hidden py-4 px-4 space-y-2">
           {mainMenuItems.map((item) => {
             const Icon = item.icon;
             return (

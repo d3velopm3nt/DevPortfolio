@@ -127,50 +127,48 @@ export function RepositoryProfilePage() {
           Back to Repositories
         </button>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
-          <div className="flex items-start justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-700">
-                <Github className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {repository.name}
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {repository.description}
-                </p>
-              </div>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800">
+              <Github className="w-6 h-6" />
             </div>
-            
-            <div className="flex items-center gap-4">
-              <a
-                href={repository.html_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800"
-              >
-                <Github className="w-4 h-4" />
-                View on GitHub
-              </a>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {repository.name}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400">
+                {repository.description}
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6 text-sm">
-            {repository.language && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                <Code2 className="w-4 h-4" />
-                {repository.language}
-              </div>
-            )}
+          <div className="flex items-center gap-4">
+            <a
+              href={repository.html_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800"
+            >
+              <Github className="w-4 h-4" />
+              View on GitHub
+            </a>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6 text-sm">
+          {repository.language && (
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-              <Star className="w-4 h-4" />
-              {repository.stargazers_count}
+              <Code2 className="w-4 h-4" />
+              {repository.language}
             </div>
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-              <GitFork className="w-4 h-4" />
-              {repository.forks_count}
-            </div>
+          )}
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <Star className="w-4 h-4" />
+            {repository.stargazers_count}
+          </div>
+          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            <GitFork className="w-4 h-4" />
+            {repository.forks_count}
           </div>
         </div>
       </div>
