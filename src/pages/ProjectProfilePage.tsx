@@ -36,7 +36,7 @@ export function ProjectProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { isConnected } = useGitHubAuth();
+  const { isConnected, providerToken } = useGitHubAuth();
   const [showRepoModal, setShowRepoModal] = useState(false);
 
   const fetchProject = async () => {
@@ -254,26 +254,40 @@ function RepositoryLinkModal({
   const [repositories, setRepositories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { providerToken } = useGitHubAuth();
+  const { isConnected, isLoading: isAuthLoading, providerToken } = useGitHubAuth();
 
   useEffect(() => {
-    fetchAvailableRepositories();
-  }, []);
+    if (!isAuthLoading && isConnected && providerToken) {
+      fetchAvailableRepositories();
+    }
+  }, [isAuthLoading, isConnected, providerToken]);
 
   const fetchAvailableRepositories = async () => {
     try {
+      if (!providerToken) {
+        throw new Error('GitHub token not found');
+      }
+
       const response = await fetch('https://api.github.com/user/repos?per_page=100', {
         headers: {
-          Authorization: `Bearer ${providerToken}`,
+          Authorization: `token ${providerToken}`,
           Accept: 'application/vnd.github.v3+json'
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch repositories');
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('GitHub authentication failed. Please reconnect your GitHub account.');
+        }
+        throw new Error(`Failed to fetch repositories: ${response.status}`);
+      }
+
       const repos = await response.json();
       setRepositories(repos);
+      setError(null);
     } catch (err) {
-      setError('Failed to load repositories');
+      console.error('Error fetching repositories:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load repositories');
     } finally {
       setIsLoading(false);
     }

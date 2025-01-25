@@ -24,94 +24,80 @@ interface Repository {
 export function RepositoryProfilePage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { providerToken } = useGitHubAuth();
+  const { isConnected, providerToken, username } = useGitHubAuth();
   const [repository, setRepository] = useState<Repository | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) fetchRepository();
-  }, [id]);
-
-  const fetchRepository = async () => {
-    try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-
-      // Get repository from our database
-      const { data: repo, error: repoError } = await supabase
-        .from('github_repositories')
-        .select(`
-          *,
-          projects (
-            id,
-            title,
-            description
-          )
-        `)
-        .eq('id', id)
-        .single();
-
-      if (repoError) throw repoError;
-      if (!repo) throw new Error('Repository not found');
-
-      // Fetch README from GitHub
-      if (providerToken) {
-        const readmeResponse = await fetch(
-          `https://api.github.com/repos/${repo.full_name}/readme`,
-          {
-            headers: {
-              Authorization: `Bearer ${providerToken}`,
-              Accept: 'application/vnd.github.v3.raw'
-            }
-          }
-        );
-
-        if (readmeResponse.ok) {
-          const readmeContent = await readmeResponse.text();
-          repo.readme_content = readmeContent;
+    const fetchRepository = async () => {
+      try {
+        if (!isConnected || !providerToken) {
+          throw new Error('GitHub not connected');
         }
 
-        // Fetch package.json if it exists
-        const packageResponse = await fetch(
-          `https://api.github.com/repos/${repo.full_name}/contents/package.json`,
-          {
-            headers: {
-              Authorization: `Bearer ${providerToken}`,
-              Accept: 'application/vnd.github.v3.raw'
-            }
+        const response = await fetch(`https://api.github.com/repositories/${id}`, {
+          headers: {
+            'Authorization': `token ${providerToken}`,
+            'Accept': 'application/vnd.github.v3+json',
           }
-        );
+        });
 
-        if (packageResponse.ok) {
-          const packageJson = await packageResponse.json();
-          repo.dependencies = {
-            ...packageJson.dependencies,
-            ...packageJson.devDependencies
-          };
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('GitHub authentication failed. Please reconnect your GitHub account.');
+          }
+          throw new Error(`GitHub API error: ${response.status}`);
         }
+
+        const data = await response.json();
+        setRepository(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching repository:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load repository');
+      } finally {
+        setIsLoading(false);
       }
+    };
 
-      setRepository(repo);
-    } catch (err) {
-      console.error('Error fetching repository:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load repository');
-    } finally {
-      setIsLoading(false);
+    if (id && isConnected && providerToken) {
+      fetchRepository();
     }
-  };
+  }, [id, isConnected, providerToken]);
 
-  if (isLoading) {
+  if (!isConnected) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      <div className="text-center py-8">
+        <p className="text-red-600 dark:text-red-400">
+          Please connect your GitHub account to view repositories
+        </p>
       </div>
     );
   }
 
-  if (error || !repository) {
+  if (isLoading) {
     return (
-      <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
-        {error || 'Repository not found'}
+      <div className="text-center py-8">
+        <p className="text-gray-600 dark:text-gray-400">Loading repository...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600 dark:text-red-400">
+          {error}
+        </p>
+      </div>
+    );
+  }
+
+  if (!repository) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 dark:text-gray-400">Repository not found</p>
       </div>
     );
   }
