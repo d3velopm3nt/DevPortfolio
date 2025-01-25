@@ -128,136 +128,138 @@ export default function App() {
   return (
     <ThemeProvider>
       <Router>
-        <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="min-h-screen flex flex-col bg-[#1B1E23] dark:bg-[#1B1E23] transition-colors">
           <Navigation />
           
-          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route 
-                path="/auth" 
-                element={
-                  isSupabaseReady 
-                    ? <AuthPage /> 
-                    : <div className="min-h-[60vh] flex items-center justify-center">
-                        <p className="text-lg text-gray-600 dark:text-gray-300">
-                          Please click the "Connect to Supabase" button in the top right to set up your Supabase project.
-                        </p>
-                      </div>
-                } 
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/applications"
-                element={
-                  <ProtectedRoute>
-                    <ApplicationsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/applications/:id"
-                element={
-                  <ProtectedRoute>
-                    <ProjectsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects"
-                element={
-                  <ProtectedRoute>
-                    <ProjectsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/projects/:id"
-                element={
-                  <ProtectedRoute>
-                    <ProjectProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/github/repositories"
-                element={
-                  <ProtectedRoute>
-                    <GitHubRepositoriesPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/github/repositories/:id"
-                element={
-                  <ProtectedRoute>
-                    <RepositoryProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/timeline"
-                element={
-                  <ProtectedRoute>
-                    <TimelinePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/technology/:techName"
-                element={
-                  <ProtectedRoute>
-                    <TechnologyProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings/tech-stacks/new"
-                element={
-                  <ProtectedRoute>
-                    <TechStackProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings/tech-stacks/:id"
-                element={
-                  <ProtectedRoute>
-                    <TechStackProfilePage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/feed"
-                element={
-                  <ProtectedRoute>
-                    <TechFeedPage />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+          <main className="flex-1">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route 
+                  path="/auth" 
+                  element={
+                    isSupabaseReady 
+                      ? <AuthPage /> 
+                      : <div className="min-h-[60vh] flex items-center justify-center">
+                          <p className="text-lg text-gray-600 dark:text-gray-300">
+                            Please click the "Connect to Supabase" button in the top right to set up your Supabase project.
+                          </p>
+                        </div>
+                  } 
+                />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/applications"
+                  element={
+                    <ProtectedRoute>
+                      <ApplicationsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/applications/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ProjectProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/github/repositories"
+                  element={
+                    <ProtectedRoute>
+                      <GitHubRepositoriesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/github/repositories/:id"
+                  element={
+                    <ProtectedRoute>
+                      <RepositoryProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/timeline"
+                  element={
+                    <ProtectedRoute>
+                      <TimelinePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/technology/:techName"
+                  element={
+                    <ProtectedRoute>
+                      <TechnologyProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings/tech-stacks/new"
+                  element={
+                    <ProtectedRoute>
+                      <TechStackProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings/tech-stacks/:id"
+                  element={
+                    <ProtectedRoute>
+                      <TechStackProfilePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/feed"
+                  element={
+                    <ProtectedRoute>
+                      <TechFeedPage />
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </div>
           </main>
 
-          <footer className="bg-white dark:bg-gray-800 border-t dark:border-gray-700">
+          <footer className="border-t border-gray-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <p className="text-center text-gray-600 dark:text-gray-400">
-                © {new Date().getFullYear()} DevFolio. All rights reserved.
+              <p className="text-center text-gray-400">
+                © {new Date().getFullYear()} DevPort. All rights reserved.
               </p>
             </div>
           </footer>
