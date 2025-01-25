@@ -2,133 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Github, Loader2, Check, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useGitHubAuth } from '../../hooks/useGitHubAuth';
 
 export function GitHubSettings() {
   const location = useLocation();
-  const [profile, setProfile] = useState<{
-    github_username: string | null;
-    github_access_token: string | null;
-    github_last_sync_at: string | null;
-    isGitHubConnected: boolean;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { 
+    isConnected, 
+    isLoading, 
+    error: authError, 
+    username, 
+    lastSyncedAt,
+    refresh 
+  } = useGitHubAuth();
+  
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-
-  useEffect(() => {
-    fetchProfile();
-    const checkGitHubConnection = async () => {
-      const response = await supabase?.auth.getSession();
-      const session = response?.data?.session;
-      const isConnected = !!session?.provider_token && session?.user?.app_metadata?.provider === 'github';
-      // Update your UI accordingly
-    };
-
-    checkGitHubConnection();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      
-      // Get user and session info
-      const { data: { user } } = await supabase.auth.getUser();
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!user) throw new Error('Not authenticated');
-
-      console.log('Auth Debug:', {
-        provider: user.app_metadata?.provider,
-        hasProviderToken: !!session?.provider_token,
-        user: user
-      });
-
-      // Check GitHub connection status
-      const isGitHubUser = user.app_metadata?.provider === 'github';
-      const hasValidToken = !!session?.provider_token;
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('github_username, github_access_token, github_last_sync_at')
-        .eq('id', user.id)
-        .single();
-
-      if (error) throw error;
-
-      console.log('Profile Debug:', {
-        isGitHubUser,
-        hasValidToken,
-        githubUsername: data.github_username,
-        hasAccessToken: !!data.github_access_token
-      });
-
-      setProfile({
-        ...data,
-        isGitHubConnected: isGitHubUser && hasValidToken
-      });
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      setError('Failed to load GitHub settings');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleConnect = async () => {
-    try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { url }, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          scopes: 'repo read:user',
-          redirectTo: `${window.location.origin}/auth/callback`,
-          // queryParams: {
-          //   state: JSON.stringify({ from: location.pathname })
-          // }
-        }
-      });
-
-      if (error) throw error;
-      if (url) window.location.href = url;
-    } catch (err) {
-      console.error('Error connecting GitHub:', err);
-      setError('Failed to connect GitHub account');
-    }
-  };
-
-  const handleDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to disconnect your GitHub account?')) return;
-
-    try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          github_username: null,
-          github_access_token: null,
-          github_refresh_token: null,
-          github_token_expires_at: null,
-          github_last_sync_at: null
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      // Delete repositories
-      await supabase
-        .from('github_repositories')
-        .delete()
-        .eq('user_id', user.id);
-
-      await fetchProfile();
-    } catch (err) {
-      console.error('Error disconnecting GitHub:', err);
-      setError('Failed to disconnect GitHub account');
-    }
-  };
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -192,12 +80,68 @@ export function GitHubSettings() {
 
       if (updateError) throw updateError;
 
-      await fetchProfile();
+      await refresh(); // Refresh GitHub connection state after sync
     } catch (err) {
       console.error('Error syncing repositories:', err);
       setError(err instanceof Error ? err.message : 'Failed to sync GitHub repositories');
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleConnect = async () => {
+    try {
+      if (!supabase) throw new Error('Supabase client not initialized');
+      const { data: { url }, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          scopes: 'repo read:user',
+          redirectTo: `${window.location.origin}/auth/callback`,
+          // queryParams: {
+          //   state: JSON.stringify({ from: location.pathname })
+          // }
+        }
+      });
+
+      if (error) throw error;
+      if (url) window.location.href = url;
+    } catch (err) {
+      console.error('Error connecting GitHub:', err);
+      setError('Failed to connect GitHub account');
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!window.confirm('Are you sure you want to disconnect your GitHub account?')) return;
+
+    try {
+      if (!supabase) throw new Error('Supabase client not initialized');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          github_username: null,
+          github_access_token: null,
+          github_refresh_token: null,
+          github_token_expires_at: null,
+          github_last_sync_at: null
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Delete repositories
+      await supabase
+        .from('github_repositories')
+        .delete()
+        .eq('user_id', user.id);
+
+      await refresh();
+    } catch (err) {
+      console.error('Error disconnecting GitHub:', err);
+      setError('Failed to disconnect GitHub account');
     }
   };
 
@@ -232,27 +176,27 @@ export function GitHubSettings() {
             </div>
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">
-                {profile?.github_username ? (
-                  <>Connected as @{profile.github_username}</>
+                {username ? (
+                  <>Connected as @{username}</>
                 ) : (
                   'GitHub Account'
                 )}
               </h3>
-              {profile?.isGitHubConnected && (
+              {isConnected && (
                 <p className="text-sm text-green-600 dark:text-green-400">
                   ✓ Connected
                 </p>
               )}
-              {profile?.github_last_sync_at && (
+              {lastSyncedAt && (
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Last synced: {new Date(profile.github_last_sync_at).toLocaleString()}
+                  Last synced: {new Date(lastSyncedAt).toLocaleString()}
                 </p>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-4">
-            {profile?.isGitHubConnected ? (
+            {isConnected ? (
               <>
                 <button
                   onClick={handleSync}

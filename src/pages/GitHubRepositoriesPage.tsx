@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Github, ArrowLeft, Plus, Loader2, Star, GitFork, Code2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useGitHubAuth } from '../hooks/useGitHubAuth';
 
 interface GitHubRepository {
   id: string;
@@ -18,45 +19,42 @@ interface GitHubRepository {
 
 export function GitHubRepositoriesPage() {
   const navigate = useNavigate();
+  const { isConnected, isLoading: isAuthLoading, error: authError } = useGitHubAuth();
   const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchRepositories();
-  }, []);
+    if (!isAuthLoading) {
+      if (isConnected) {
+        setIsLoading(true);
+        fetchRepositories();
+      } else {
+        setError('GitHub account not connected. Please connect your GitHub account in settings.');
+        setIsLoading(false);
+      }
+    }
+  }, [isAuthLoading, isConnected]);
 
   const fetchRepositories = async () => {
     try {
       if (!supabase) throw new Error('Supabase client not initialized');
-      
-      // Get both user and session
       const { data: { user } } = await supabase.auth.getUser();
-      const { data: { session } } = await supabase.auth.getSession();
       
-      if (!user) throw new Error('Not authenticated');
-
-      // Check for GitHub connection using provider_token
-      if (!session?.provider_token || user.app_metadata?.provider !== 'github') {
-        setError('GitHub account not connected. Please connect your GitHub account in settings.');
-        setIsLoading(false);
-        return;
-      }
-
       const { data: repos, error: reposError } = await supabase
         .from('github_repositories')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user?.id)
         .order('name');
 
       if (reposError) throw reposError;
       
       if (!repos || repos.length === 0) {
-        // No repositories found, might need to sync
         setError('No repositories found. Please sync your GitHub repositories in settings.');
       } else {
         setRepositories(repos);
+        setError(null);
       }
     } catch (err) {
       console.error('Error fetching repositories:', err);
@@ -118,7 +116,7 @@ export function GitHubRepositoriesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
+      {/* Header - Always visible */}
       <div>
         <button
           onClick={() => navigate('/projects')}
@@ -151,7 +149,8 @@ export function GitHubRepositoriesPage() {
         </div>
       )}
 
-      {isLoading ? (
+      {/* Content area with loading states */}
+      {(isAuthLoading || isLoading) ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
         </div>
