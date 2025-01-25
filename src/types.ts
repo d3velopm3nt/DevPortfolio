@@ -31,6 +31,30 @@ export interface Project {
     id: string;
     name: string;
   };
+  platforms?: ProjectPlatform[];
+}
+
+export interface Platform {
+  id: string;
+  name: string;
+  description: string;
+  icon_name?: string;
+}
+
+export interface OperatingSystem {
+  id: string;
+  platform_id: string;
+  name: string;
+  version: string;
+}
+
+export interface ProjectPlatform {
+  id: string;
+  project_id: string;
+  platform_id: string;
+  operating_system_id: string;
+  platform: Platform;
+  operating_system: OperatingSystem;
 }
 
 export interface TechStackCategory {

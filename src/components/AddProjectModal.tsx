@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Loader2 } from 'lucide-react';
-import { Technology, TechStackSection } from '../types';
+import { X, Plus, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Technology, TechStackSection, ProjectPlatform } from '../types';
 import { techCategories } from '../data/techCategories';
 import { supabase } from '../lib/supabase';
 import { technologies } from '../data/technologies';
+import { PlatformSelector } from './projects/PlatformSelector';
 
 interface AddProjectModalProps {
   isOpen: boolean;
@@ -18,16 +19,18 @@ interface Application {
 }
 
 export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId }: AddProjectModalProps) {
-  const [currentStep, setCurrentStep] = useState<TechStackSection>('language');
+  const [currentStep, setCurrentStep] = useState<'details' | 'tech' | 'platforms'>('details');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
   const [liveUrl, setLiveUrl] = useState('');
   const [selectedTechs, setSelectedTechs] = useState<Technology[]>([]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<ProjectPlatform[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | undefined>(applicationId);
+  const [expandedCategories, setExpandedCategories] = useState<TechStackSection[]>(['language']);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,6 +58,15 @@ export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (currentStep === 'details') {
+      setCurrentStep('tech');
+      return;
+    }
+    if (currentStep === 'tech') {
+      setCurrentStep('platforms');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -78,25 +90,44 @@ export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId
 
       if (projectError) throw projectError;
 
-      // Add technologies
+      // Add technologies - only if there are selected technologies
       if (selectedTechs.length > 0) {
-        const { error: techError } = await supabase
-          .from('project_technologies')
-          .insert(
-            selectedTechs.map(tech => ({
-              project_id: project.id,
-              technology_id: tech.id
-            }))
-          );
+        const techInserts = selectedTechs
+          .filter(tech => tech.id) // Ensure we only include techs with IDs
+          .map(tech => ({
+            project_id: project.id,
+            technology_id: tech.id
+          }));
 
-        if (techError) throw techError;
+        if (techInserts.length > 0) {
+          const { error: techError } = await supabase
+            .from('project_technologies')
+            .insert(techInserts);
+
+          if (techError) throw techError;
+        }
+      }
+
+      // Add platforms - only if there are selected platforms
+      if (selectedPlatforms.length > 0) {
+        const platformInserts = selectedPlatforms.map(platform => ({
+          project_id: project.id,
+          platform_id: platform.platform_id,
+          operating_system_id: platform.operating_system_id
+        }));
+
+        const { error: platformError } = await supabase
+          .from('project_platforms')
+          .insert(platformInserts);
+
+        if (platformError) throw platformError;
       }
 
       onProjectAdded();
       onClose();
-    } catch (error) {
-      console.error('Error adding project:', error);
-      setError('Failed to create project. Please try again.');
+    } catch (err) {
+      console.error('Error adding project:', err);
+      setError('Failed to create project');
     } finally {
       setIsLoading(false);
     }
@@ -110,19 +141,43 @@ export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId
     );
   };
 
-  if (!isOpen) return null;
+  const handleClose = () => {
+    setCurrentStep('details');
+    setTitle('');
+    setDescription('');
+    setGithubUrl('');
+    setLiveUrl('');
+    setSelectedTechs([]);
+    setSelectedPlatforms([]);
+    setExpandedCategories(['language']);
+    onClose();
+  };
 
-  const currentCategory = techCategories.find(cat => cat.id === currentStep)!;
-  const availableTechs = technologies.filter(tech => tech.type === currentStep);
+  const toggleCategory = (categoryId: TechStackSection) => {
+    setExpandedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Project</h2>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Add New Project
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Step {currentStep === 'details' ? '1' : currentStep === 'tech' ? '2' : '3'} of 3
+              </p>
+            </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
               <X className="w-5 h-5" />
@@ -136,137 +191,181 @@ export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Project Title
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  rows={3}
-                  required
-                />
-              </div>
-
-              {applications.length > 0 && (
+            {currentStep === 'details' && (
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Application (Optional)
-                  </label>
-                  <select
-                    value={selectedApplicationId || ''}
-                    onChange={(e) => setSelectedApplicationId(e.target.value || undefined)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  >
-                    <option value="">No Application</option>
-                    {applications.map((app) => (
-                      <option key={app.id} value={app.id}>
-                        {app.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    GitHub URL
+                    Project Title
                   </label>
                   <input
-                    type="url"
-                    value={githubUrl}
-                    onChange={(e) => setGithubUrl(e.target.value)}
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
                   />
                 </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Live URL
+                    Description
                   </label>
-                  <input
-                    type="url"
-                    value={liveUrl}
-                    onChange={(e) => setLiveUrl(e.target.value)}
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    rows={3}
+                    required
                   />
                 </div>
-              </div>
-            </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tech Stack</h3>
-              
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-                {techCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => setCurrentStep(category.id)}
-                    className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-colors ${
-                      currentStep === category.id
-                        ? category.color
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <category.icon className="w-6 h-6" />
-                    <span className="text-sm font-medium">{category.title}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className={`p-6 rounded-xl ${currentCategory.color}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <currentCategory.icon className="w-6 h-6" />
+                {applications.length > 0 && (
                   <div>
-                    <h4 className="font-semibold">{currentCategory.title}</h4>
-                    <p className="text-sm opacity-80">{currentCategory.description}</p>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Application (Optional)
+                    </label>
+                    <select
+                      value={selectedApplicationId || ''}
+                      onChange={(e) => setSelectedApplicationId(e.target.value || undefined)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="">No Application</option>
+                      {applications.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {app.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      GitHub URL
+                    </label>
+                    <input
+                      type="url"
+                      value={githubUrl}
+                      onChange={(e) => setGithubUrl(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Live URL
+                    </label>
+                    <input
+                      type="url"
+                      value={liveUrl}
+                      onChange={(e) => setLiveUrl(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
                   </div>
                 </div>
+              </div>
+            )}
 
-                <div className="flex flex-wrap gap-2">
-                  {availableTechs.map((tech) => (
-                    <button
-                      key={tech.name}
-                      type="button"
-                      onClick={() => handleTechToggle(tech)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
-                        selectedTechs.some(t => t.name === tech.name)
-                          ? 'bg-white/20'
-                          : 'bg-white/10 hover:bg-white/15'
-                      }`}
-                    >
-                      {selectedTechs.some(t => t.name === tech.name) ? (
-                        <X className="w-4 h-4" />
-                      ) : (
-                        <Plus className="w-4 h-4" />
-                      )}
-                      {tech.name}
-                    </button>
-                  ))}
+            {currentStep === 'tech' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tech Stack</h3>
+                
+                <div className="space-y-2">
+                  {techCategories.map((category) => {
+                    const categoryTechs = technologies.filter(tech => tech.type === category.id);
+                    const isExpanded = expandedCategories.includes(category.id);
+                    const selectedCount = selectedTechs.filter(tech => tech.type === category.id).length;
+
+                    return (
+                      <div key={category.id} className="rounded-lg border border-gray-200 dark:border-gray-700">
+                        <button
+                          type="button"
+                          onClick={() => toggleCategory(category.id)}
+                          className={`w-full flex items-center justify-between p-4 ${
+                            isExpanded ? 'border-b border-gray-200 dark:border-gray-700' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${category.color}`}>
+                              <category.icon className="w-5 h-5" />
+                            </div>
+                            <div className="text-left">
+                              <h4 className="font-medium text-gray-900 dark:text-white">
+                                {category.title}
+                                {selectedCount > 0 && (
+                                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                                    ({selectedCount} selected)
+                                  </span>
+                                )}
+                              </h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                {category.description}
+                              </p>
+                            </div>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronDown className="w-5 h-5 text-gray-500" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-500" />
+                          )}
+                        </button>
+                        
+                        {isExpanded && (
+                          <div className="p-4 flex flex-wrap gap-2">
+                            {categoryTechs.map((tech) => (
+                              <button
+                                key={tech.name}
+                                type="button"
+                                onClick={() => handleTechToggle(tech)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                                  selectedTechs.some(t => t.name === tech.name)
+                                    ? tech.color
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                                }`}
+                              >
+                                {selectedTechs.some(t => t.name === tech.name) ? (
+                                  <X className="w-4 h-4" />
+                                ) : (
+                                  <Plus className="w-4 h-4" />
+                                )}
+                                {tech.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-            </div>
+            )}
+
+            {currentStep === 'platforms' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Platforms & Operating Systems
+                </h3>
+                <PlatformSelector
+                  projectId={null}
+                  selectedPlatforms={selectedPlatforms}
+                  onPlatformsChange={setSelectedPlatforms}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end gap-4">
+              {currentStep !== 'details' && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(currentStep === 'platforms' ? 'tech' : 'details')}
+                  className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                >
+                  Back
+                </button>
+              )}
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 Cancel
@@ -281,8 +380,10 @@ export function AddProjectModal({ isOpen, onClose, onProjectAdded, applicationId
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Creating...
                   </>
-                ) : (
+                ) : currentStep === 'platforms' ? (
                   'Create Project'
+                ) : (
+                  'Next'
                 )}
               </button>
             </div>

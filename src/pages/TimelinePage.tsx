@@ -1,13 +1,73 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Timeline } from '../components/Timeline';
 import { SearchBar } from '../components/SearchBar';
-import { projects } from '../data/projects';
 import { Technology } from '../types';
-import { useState } from 'react';
+import { supabase } from '../lib/supabase';
+import { Loader2 } from 'lucide-react';
+
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  image_url: string | null;
+  github_url: string | null;
+  live_url: string | null;
+  created_at: string;
+  technologies: Array<{
+    name: string;
+    type: string;
+    color: string;
+  }>;
+  application?: {
+    id: string;
+    name: string;
+  };
+}
 
 export function TimelinePage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTechs, setSelectedTechs] = useState<Technology[]>([]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          project_technologies (
+            technologies (*)
+          ),
+          application:applications (
+            id,
+            name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setProjects(data.map(project => ({
+        ...project,
+        technologies: project.project_technologies.map((pt: any) => pt.technologies),
+        application: project.application
+      })));
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError('Failed to load projects');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Get all unique technologies from projects
   const availableTechs = React.useMemo(() => {
@@ -20,7 +80,7 @@ export function TimelinePage() {
       });
     });
     return Array.from(techMap.values());
-  }, []);
+  }, [projects]);
 
   const handleTechToggle = (tech: Technology) => {
     setSelectedTechs(prev => 
@@ -45,11 +105,27 @@ export function TimelinePage() {
 
       return matchesSearch && matchesTechs;
     });
-  }, [searchTerm, selectedTechs]);
+  }, [searchTerm, selectedTechs, projects]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
+        {error}
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Project Timeline</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Project Timeline</h1>
       
       <SearchBar
         searchTerm={searchTerm}
@@ -59,7 +135,13 @@ export function TimelinePage() {
         availableTechs={availableTechs}
       />
 
-      <Timeline projects={filteredProjects} />
+      {filteredProjects.length > 0 ? (
+        <Timeline projects={filteredProjects} />
+      ) : (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          No projects found. Try adjusting your filters or add some projects!
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, LayoutDashboard, GitBranch, Package, LogOut, Settings, AppWindow } from 'lucide-react';
+import { Code2, LayoutDashboard, GitBranch, Package, LogOut, Settings, AppWindow, Rss } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 import { useAuthStore } from '../store/authStore';
@@ -82,6 +82,20 @@ export function Navigation() {
                     <div className="flex items-center gap-2">
                       <GitBranch className="w-4 h-4" />
                       Timeline
+                    </div>
+                  </Link>
+
+                  <Link
+                    to="/feed"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${
+                      isActive('/feed')
+                        ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Rss className="w-4 h-4" />
+                      Tech Feed
                     </div>
                   </Link>
 

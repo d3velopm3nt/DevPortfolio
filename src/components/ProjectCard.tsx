@@ -1,5 +1,5 @@
-import React from 'react';
-import { ExternalLink, Github, Code2, Layout, Server, Database, Lock, BarChart2, GitBranch, TestTube2, AppWindow } from 'lucide-react';
+import React, { useState } from 'react';
+import { ExternalLink, Github, Code2, Layout, Server, Database, Lock, BarChart2, GitBranch, TestTube2, AppWindow, ChevronDown, ChevronUp } from 'lucide-react';
 import { Project } from '../types';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -10,14 +10,17 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) {
   const navigate = useNavigate();
+  const [showFullStack, setShowFullStack] = useState(false);
   
-  // Group technologies by type
+  // Group technologies by type, safely handling null/undefined values
   const techsByType = React.useMemo(() => {
     const grouped = project.technologies.reduce((acc, tech) => {
-      if (!acc[tech.type]) {
-        acc[tech.type] = [];
+      if (tech && tech.type) {
+        if (!acc[tech.type]) {
+          acc[tech.type] = [];
+        }
+        acc[tech.type].push(tech);
       }
-      acc[tech.type].push(tech);
       return acc;
     }, {} as Record<string, typeof project.technologies>);
     return grouped;
@@ -104,27 +107,65 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
           </div>
         </div>
 
-        <div className="space-y-4">
-          {Object.entries(techsByType).map(([type, techs]) => (
-            <div key={type} className="space-y-2">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                {React.createElement(getTypeIcon(type), { size: 16 })}
-                <span className="capitalize">{type}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {techs.map((tech) => (
-                  <button
-                    key={tech.name}
-                    onClick={(e) => handleTechClick(e, tech.name)}
-                    className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
-                  >
-                    {tech.name}
-                  </button>
-                ))}
-              </div>
+        {/* Compact Tech Stack View */}
+        {!showFullStack && (
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              {project.technologies.map((tech) => tech && (
+                <button
+                  key={tech.name}
+                  onClick={(e) => handleTechClick(e, tech.name)}
+                  className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
+                >
+                  {tech.name}
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+
+        {/* Full Tech Stack View */}
+        {showFullStack && (
+          <div className="space-y-4">
+            {Object.entries(techsByType).map(([type, techs]) => (
+              <div key={type} className="space-y-2">
+                <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {React.createElement(getTypeIcon(type), { size: 16 })}
+                  <span className="capitalize">{type}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {techs.map((tech) => tech && (
+                    <button
+                      key={tech.name}
+                      onClick={(e) => handleTechClick(e, tech.name)}
+                      className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
+                    >
+                      {tech.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Toggle Button */}
+        <button
+          onClick={() => setShowFullStack(!showFullStack)}
+          className="mt-4 flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+        >
+          {showFullStack ? (
+            <>
+              <ChevronUp className="w-4 h-4" />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4" />
+              Show Full Stack
+            </>
+          )}
+        </button>
 
         {showViewMore && (
           <div className="mt-6">

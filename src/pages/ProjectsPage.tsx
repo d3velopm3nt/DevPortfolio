@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, Search, Loader2, AppWindow, ArrowLeft } from 'lucide-react';
+import { Plus, Loader2, AppWindow, ArrowLeft, Github } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ProjectCard } from '../components/ProjectCard';
 import { AddProjectModal } from '../components/AddProjectModal';
+import { SearchBar } from '../components/SearchBar';
+import { Technology } from '../types';
 
 interface Project {
   id: string;
@@ -36,8 +38,30 @@ export function ProjectsPage() {
   const [application, setApplication] = useState<Application | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTechs, setSelectedTechs] = useState<Technology[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Get all unique technologies from projects
+  const availableTechs = React.useMemo(() => {
+    const techMap = new Map<string, Technology>();
+    projects.forEach(project => {
+      project.technologies.forEach(tech => {
+        if (!techMap.has(tech.name)) {
+          techMap.set(tech.name, tech);
+        }
+      });
+    });
+    return Array.from(techMap.values());
+  }, [projects]);
+
+  const handleTechToggle = (tech: Technology) => {
+    setSelectedTechs(prev => 
+      prev.some(t => t.name === tech.name)
+        ? prev.filter(t => t.name !== tech.name)
+        : [...prev, tech]
+    );
+  };
 
   const fetchData = async () => {
     try {
@@ -62,11 +86,7 @@ export function ProjectsPage() {
         .select(`
           *,
           project_technologies (
-            technologies (
-              name,
-              type,
-              color
-            )
+            technologies (*)
           ),
           application:applications (
             id,
@@ -101,13 +121,20 @@ export function ProjectsPage() {
     fetchData();
   }, [applicationId]);
 
-  const filteredProjects = projects.filter(project =>
-    project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    project.technologies.some(tech => 
-      tech.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.technologies.some(tech => 
+        tech.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+    const matchesTechs = selectedTechs.length === 0 || 
+      selectedTechs.every(selectedTech =>
+        project.technologies.some(tech => tech.name === selectedTech.name)
+      );
+
+    return matchesSearch && matchesTechs;
+  });
 
   return (
     <div className="space-y-6">
@@ -139,27 +166,33 @@ export function ProjectsPage() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
-          >
-            <Plus className="w-5 h-5" />
-            Add Project
-          </button>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/github/repositories"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600"
+            >
+              <Github className="w-5 h-5" />
+              Import from GitHub
+            </Link>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
+            >
+              <Plus className="w-5 h-5" />
+              Add Project
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-        <input
-          type="text"
-          placeholder="Search projects..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-        />
-      </div>
+      {/* Search and Filters */}
+      <SearchBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedTechs={selectedTechs}
+        onTechToggle={handleTechToggle}
+        availableTechs={availableTechs}
+      />
 
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
@@ -181,7 +214,7 @@ export function ProjectsPage() {
           ))}
           {filteredProjects.length === 0 && !isLoading && (
             <div className="col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">
-              No projects found. Start by adding a new project!
+              No projects found. Start by adding a new project or importing from GitHub!
             </div>
           )}
         </div>

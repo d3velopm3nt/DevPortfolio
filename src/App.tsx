@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { Dashboard } from './components/Dashboard';
 import { TimelinePage } from './pages/TimelinePage';
@@ -7,12 +7,90 @@ import { ApplicationsPage } from './pages/ApplicationsPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectProfilePage } from './pages/ProjectProfilePage';
 import { TechnologyProfilePage } from './pages/TechnologyProfilePage';
+import { TechStackProfilePage } from './pages/TechStackProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { LandingPage } from './pages/LandingPage';
 import { AuthPage } from './pages/AuthPage';
+import { GitHubRepositoriesPage } from './pages/GitHubRepositoriesPage';
 import { ThemeProvider } from './context/ThemeContext';
 import { useAuthStore } from './store/authStore';
 import { supabase, isSupabaseReady } from './lib/supabase';
+
+// Auth callback handler component
+function AuthCallback() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const setUser = useAuthStore(state => state.setUser);
+
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        // Get the session from the URL
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (session) {
+          setUser(session.user);
+          
+          // Get the GitHub access token from the provider token
+          const { provider_token } = session;
+          
+          if (provider_token) {
+            // Update the user's profile with the GitHub token
+            await supabase
+              .from('profiles')
+              .update({
+                github_access_token: provider_token,
+                github_last_sync_at: new Date().toISOString()
+              })
+              .eq('id', session.user.id);
+          }
+
+          // Get the state parameter from the URL if it exists
+          const params = new URLSearchParams(location.search);
+          const state = params.get('state');
+          let redirectPath = '/dashboard';
+
+          // If there's state information, parse it for the redirect path
+          if (state) {
+            try {
+              const stateData = JSON.parse(state);
+              if (stateData.from) {
+                redirectPath = stateData.from;
+              }
+            } catch (e) {
+              console.error('Error parsing state:', e);
+            }
+          }
+
+          // Redirect to the appropriate page
+          navigate(redirectPath, { replace: true });
+        } else {
+          navigate('/auth', { replace: true });
+        }
+      } catch (err) {
+        console.error('Error handling auth callback:', err);
+        navigate('/auth', { replace: true });
+      }
+    };
+
+    handleAuthCallback();
+  }, [location, navigate, setUser]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          Authenticating...
+        </h2>
+        <p className="text-gray-600 dark:text-gray-400">
+          Please wait while we complete the authentication process.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
@@ -68,6 +146,7 @@ export default function App() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Routes>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route 
                 path="/auth" 
                 element={
@@ -121,6 +200,14 @@ export default function App() {
                 }
               />
               <Route
+                path="/github/repositories"
+                element={
+                  <ProtectedRoute>
+                    <GitHubRepositoriesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/timeline"
                 element={
                   <ProtectedRoute>
@@ -133,6 +220,22 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <TechnologyProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/tech-stacks/new"
+                element={
+                  <ProtectedRoute>
+                    <TechStackProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/tech-stacks/:id"
+                element={
+                  <ProtectedRoute>
+                    <TechStackProfilePage />
                   </ProtectedRoute>
                 }
               />
