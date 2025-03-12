@@ -1,4 +1,5 @@
 import { CropIcon as IconProps } from 'lucide-react';
+import { Key } from 'react';
 
 export interface Technology {
   id: Key | null | undefined;
@@ -24,10 +25,11 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
+  image_url?: string;
+  thumbnail_url?: string;
+  github_url?: string;
+  live_url?: string;
   technologies: Technology[];
-  githubUrl?: string;
-  liveUrl?: string;
   application?: {
     id: string;
     name: string;

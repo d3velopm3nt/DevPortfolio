@@ -78,12 +78,30 @@ export function ProjectCard({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02]">
-      {project.image_url && (
+      {project.thumbnail_url ? (
+        <img
+          src={project.thumbnail_url}
+          alt={project.title}
+          className="w-full h-48 object-cover"
+        />
+      ) : project.image_url ? (
         <img
           src={project.image_url}
           alt={project.title}
           className="w-full h-48 object-cover"
         />
+      ) : project.live_url ? (
+        <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <span className="text-gray-500 dark:text-gray-400">
+            Website thumbnail loading...
+          </span>
+        </div>
+      ) : (
+        <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <span className="text-gray-500 dark:text-gray-400">
+            No image available
+          </span>
+        </div>
       )}
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
