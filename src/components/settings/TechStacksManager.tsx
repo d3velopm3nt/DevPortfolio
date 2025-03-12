@@ -1,8 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Loader2, Code2, ExternalLink } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { Technology } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  Code2,
+  ExternalLink,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
+import { Technology } from "../../types";
 
 interface TechStack {
   id: string;
@@ -25,43 +32,50 @@ export function TechStacksManager() {
   const fetchData = async () => {
     try {
       const { data, error } = await supabase
-        .from('tech_stacks')
-        .select(`
+        .from("tech_stacks")
+        .select(
+          `
           *,
           tech_stack_technologies (
             technologies (*)
           )
-        `)
-        .order('name');
+        `,
+        )
+        .order("name");
 
       if (error) throw error;
 
-      setTechStacks(data.map((stack: any) => ({
-        ...stack,
-        technologies: stack.tech_stack_technologies.map((t: any) => t.technologies)
-      })));
+      setTechStacks(
+        data.map((stack: any) => ({
+          ...stack,
+          technologies: stack.tech_stack_technologies.map(
+            (t: any) => t.technologies,
+          ),
+        })),
+      );
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load tech stacks');
+      console.error("Error fetching data:", err);
+      setError("Failed to load tech stacks");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (stack: TechStack) => {
-    if (!window.confirm(`Are you sure you want to delete ${stack.name}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${stack.name}?`))
+      return;
 
     try {
       const { error } = await supabase
-        .from('tech_stacks')
+        .from("tech_stacks")
         .delete()
-        .eq('id', stack.id);
+        .eq("id", stack.id);
 
       if (error) throw error;
       await fetchData();
     } catch (err) {
-      console.error('Error deleting tech stack:', err);
-      setError('Failed to delete tech stack');
+      console.error("Error deleting tech stack:", err);
+      setError("Failed to delete tech stack");
     }
   };
 
@@ -77,7 +91,9 @@ export function TechStacksManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Tech Stacks</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Tech Stacks
+          </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Manage predefined technology combinations
           </p>

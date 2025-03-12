@@ -1,14 +1,14 @@
-import React from 'react';
-import { projects } from '../data/projects';
-import { Technology } from '../types';
-import { techCategories } from '../data/techCategories';
+import React from "react";
+import { projects } from "../data/projects";
+import { Technology } from "../types";
+import { techCategories } from "../data/techCategories";
 
 export function TechStackLayers() {
   // Get all unique technologies from projects
   const allTechnologies = React.useMemo(() => {
     const techMap = new Map<string, Technology>();
-    projects.forEach(project => {
-      project.technologies.forEach(tech => {
+    projects.forEach((project) => {
+      project.technologies.forEach((tech) => {
         if (!techMap.has(tech.name)) {
           techMap.set(tech.name, tech);
         }
@@ -19,12 +19,15 @@ export function TechStackLayers() {
 
   // Group technologies by category
   const techByCategory = React.useMemo(() => {
-    const categories = techCategories.reduce((acc, category) => {
-      acc[category.id] = [];
-      return acc;
-    }, {} as Record<string, Technology[]>);
+    const categories = techCategories.reduce(
+      (acc, category) => {
+        acc[category.id] = [];
+        return acc;
+      },
+      {} as Record<string, Technology[]>,
+    );
 
-    allTechnologies.forEach(tech => {
+    allTechnologies.forEach((tech) => {
       if (categories[tech.type]) {
         categories[tech.type].push(tech);
       }
@@ -64,7 +67,8 @@ export function TechStackLayers() {
                 {tech.name}
               </div>
             ))}
-            {(!techByCategory[category.id] || techByCategory[category.id].length === 0) && (
+            {(!techByCategory[category.id] ||
+              techByCategory[category.id].length === 0) && (
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                 No technologies added yet
               </p>

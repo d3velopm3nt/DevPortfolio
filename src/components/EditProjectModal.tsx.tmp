@@ -149,31 +149,51 @@ export function EditProjectModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      data-oid="4-aityh"
+    >
+      <div
+        className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        data-oid="ud3jwgv"
+      >
+        <div className="p-6 space-y-6" data-oid="kek5mlh">
+          <div className="flex items-center justify-between" data-oid="n2:tk9x">
+            <h2
+              className="text-2xl font-bold text-gray-900 dark:text-white"
+              data-oid="qfkb_oy"
+            >
               Edit Project
             </h2>
             <button
               onClick={onClose}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+              data-oid="_da:m35"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5" data-oid="vbbensu" />
             </button>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
+            <div
+              className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg"
+              data-oid="r7onerh"
+            >
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-6"
+            data-oid="ek_9k2l"
+          >
+            <div className="space-y-4" data-oid="85yeej1">
+              <div data-oid="oct_jgv">
+                <label
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  data-oid="trlx9hj"
+                >
                   Project Title
                 </label>
                 <input
@@ -182,11 +202,15 @@ export function EditProjectModal({
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
+                  data-oid="zbtiomf"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div data-oid="qd3bx91">
+                <label
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  data-oid="srbynu4"
+                >
                   Description
                 </label>
                 <textarea
@@ -195,12 +219,16 @@ export function EditProjectModal({
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   rows={3}
                   required
+                  data-oid="93j_y03"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <div className="grid grid-cols-2 gap-4" data-oid="6t3rkiu">
+                <div data-oid="x77nyl-">
+                  <label
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    data-oid="8o7d7::"
+                  >
                     GitHub URL
                   </label>
                   <input
@@ -208,10 +236,14 @@ export function EditProjectModal({
                     value={githubUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    data-oid="p1yza3m"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <div data-oid="aqbyeb2">
+                  <label
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    data-oid="r59yekp"
+                  >
                     Live URL
                   </label>
                   <input
@@ -219,17 +251,24 @@ export function EditProjectModal({
                     value={liveUrl}
                     onChange={(e) => setLiveUrl(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    data-oid="qmkihvt"
                   />
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            <div data-oid="s7-trfz">
+              <h3
+                className="text-lg font-semibold text-gray-900 dark:text-white mb-4"
+                data-oid=":im.rb-"
+              >
                 Tech Stack
               </h3>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+              <div
+                className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6"
+                data-oid="wc_g7nm"
+              >
                 {techCategories.map((category) => (
                   <button
                     key={category.id}
@@ -240,28 +279,40 @@ export function EditProjectModal({
                         ? category.color
                         : "hover:bg-gray-100 dark:hover:bg-gray-700"
                     }`}
+                    data-oid="lh9jtbc"
                   >
-                    <category.icon className="w-6 h-6" />
-                    <span className="text-sm font-medium">
+                    <category.icon className="w-6 h-6" data-oid="_z5vu1v" />
+                    <span className="text-sm font-medium" data-oid="3ll7syi">
                       {category.title}
                     </span>
                   </button>
                 ))}
               </div>
 
-              <div className={`p-6 rounded-xl ${currentCategory.color}`}>
-                <div className="flex items-center gap-3 mb-4">
-                  <currentCategory.icon className="w-6 h-6" />
+              <div
+                className={`p-6 rounded-xl ${currentCategory.color}`}
+                data-oid="jsomxfr"
+              >
+                <div
+                  className="flex items-center gap-3 mb-4"
+                  data-oid="m-e8k:."
+                >
+                  <currentCategory.icon
+                    className="w-6 h-6"
+                    data-oid="5ra596z"
+                  />
 
-                  <div>
-                    <h4 className="font-semibold">{currentCategory.title}</h4>
-                    <p className="text-sm opacity-80">
+                  <div data-oid="e_zxhbd">
+                    <h4 className="font-semibold" data-oid="m9ysqhv">
+                      {currentCategory.title}
+                    </h4>
+                    <p className="text-sm opacity-80" data-oid="e6k73i9">
                       {currentCategory.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2" data-oid="41z_9-0">
                   {availableTechs.map((tech) => (
                     <button
                       key={tech.name}
@@ -272,11 +323,12 @@ export function EditProjectModal({
                           ? "bg-white/20"
                           : "bg-white/10 hover:bg-white/15"
                       }`}
+                      data-oid="o:roudi"
                     >
                       {selectedTechs.some((t) => t.name === tech.name) ? (
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4" data-oid="7p-46m2" />
                       ) : (
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-4 h-4" data-oid="7sfkn5a" />
                       )}
                       {tech.name}
                     </button>
@@ -285,11 +337,12 @@ export function EditProjectModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-4">
+            <div className="flex justify-end gap-4" data-oid="2u.8ll5">
               <button
                 type="button"
                 onClick={onClose}
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                data-oid="l:96_nd"
               >
                 Cancel
               </button>
@@ -297,10 +350,14 @@ export function EditProjectModal({
                 type="submit"
                 disabled={isLoading}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-2"
+                data-oid="3bxgwnd"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2
+                      className="w-4 h-4 animate-spin"
+                      data-oid="b8xyibz"
+                    />
                     Updating...
                   </>
                 ) : (

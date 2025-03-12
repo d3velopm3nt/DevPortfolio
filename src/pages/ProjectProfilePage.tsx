@@ -1,10 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Github, ExternalLink, Edit, Trash2, ArrowLeft, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { ProjectCard } from '../components/ProjectCard';
-import { EditProjectModal } from '../components/EditProjectModal';
-import { useGitHubAuth } from '../hooks/useGitHubAuth';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Loader2,
+  Github,
+  ExternalLink,
+  Edit,
+  Trash2,
+  ArrowLeft,
+  Plus,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { ProjectCard } from "../components/ProjectCard";
+import { EditProjectModal } from "../components/EditProjectModal";
+import { useGitHubAuth } from "../hooks/useGitHubAuth";
 
 interface Project {
   id: string;
@@ -41,12 +49,15 @@ export function ProjectProfilePage() {
 
   const fetchProject = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           *,
           project_technologies (
             technologies (
@@ -63,21 +74,24 @@ export function ProjectProfilePage() {
             html_url,
             language
           )
-        `)
-        .eq('id', id)
-        .eq('user_id', user.id)
+        `,
+        )
+        .eq("id", id)
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
 
       setProject({
         ...data,
-        technologies: data.project_technologies.map((pt: any) => pt.technologies),
-        github_repositories: data.github_repositories
+        technologies: data.project_technologies.map(
+          (pt: any) => pt.technologies,
+        ),
+        github_repositories: data.github_repositories,
       });
     } catch (err) {
-      console.error('Error fetching project:', err);
-      setError('Failed to load project');
+      console.error("Error fetching project:", err);
+      setError("Failed to load project");
     } finally {
       setIsLoading(false);
     }
@@ -88,20 +102,18 @@ export function ProjectProfilePage() {
   }, [id]);
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this project?')) return;
+    if (!window.confirm("Are you sure you want to delete this project?"))
+      return;
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("projects").delete().eq("id", id);
 
       if (error) throw error;
 
-      navigate('/projects');
+      navigate("/projects");
     } catch (err) {
-      console.error('Error deleting project:', err);
-      setError('Failed to delete project');
+      console.error("Error deleting project:", err);
+      setError("Failed to delete project");
     }
   };
 
@@ -116,7 +128,7 @@ export function ProjectProfilePage() {
   if (error || !project) {
     return (
       <div className="p-4 bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-300 rounded-lg">
-        {error || 'Project not found'}
+        {error || "Project not found"}
       </div>
     );
   }
@@ -126,7 +138,7 @@ export function ProjectProfilePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate('/projects')}
+          onClick={() => navigate("/projects")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -222,7 +234,8 @@ export function ProjectProfilePage() {
             </div>
           ))}
 
-          {(!project?.github_repositories || project.github_repositories.length === 0) && (
+          {(!project?.github_repositories ||
+            project.github_repositories.length === 0) && (
             <div className="col-span-full text-center py-8 text-gray-500 dark:text-gray-400">
               No repositories linked to this project yet.
             </div>
@@ -242,19 +255,23 @@ export function ProjectProfilePage() {
   );
 }
 
-function RepositoryLinkModal({ 
-  projectId, 
-  onClose, 
-  onLink 
-}: { 
-  projectId: string; 
-  onClose: () => void; 
+function RepositoryLinkModal({
+  projectId,
+  onClose,
+  onLink,
+}: {
+  projectId: string;
+  onClose: () => void;
   onLink: () => void;
 }) {
   const [repositories, setRepositories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isConnected, isLoading: isAuthLoading, providerToken } = useGitHubAuth();
+  const {
+    isConnected,
+    isLoading: isAuthLoading,
+    providerToken,
+  } = useGitHubAuth();
 
   useEffect(() => {
     if (!isAuthLoading && isConnected && providerToken) {
@@ -265,19 +282,24 @@ function RepositoryLinkModal({
   const fetchAvailableRepositories = async () => {
     try {
       if (!providerToken) {
-        throw new Error('GitHub token not found');
+        throw new Error("GitHub token not found");
       }
 
-      const response = await fetch('https://api.github.com/user/repos?per_page=100', {
-        headers: {
-          Authorization: `token ${providerToken}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
-      });
+      const response = await fetch(
+        "https://api.github.com/user/repos?per_page=100",
+        {
+          headers: {
+            Authorization: `token ${providerToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('GitHub authentication failed. Please reconnect your GitHub account.');
+          throw new Error(
+            "GitHub authentication failed. Please reconnect your GitHub account.",
+          );
         }
         throw new Error(`Failed to fetch repositories: ${response.status}`);
       }
@@ -286,8 +308,10 @@ function RepositoryLinkModal({
       setRepositories(repos);
       setError(null);
     } catch (err) {
-      console.error('Error fetching repositories:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load repositories');
+      console.error("Error fetching repositories:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to load repositories",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +320,7 @@ function RepositoryLinkModal({
   const handleLinkRepository = async (repo: any) => {
     try {
       const { error: repoError } = await supabase
-        .from('github_repositories')
+        .from("github_repositories")
         .upsert({
           user_id: (await supabase.auth.getUser()).data.user?.id,
           github_id: repo.id,
@@ -309,14 +333,14 @@ function RepositoryLinkModal({
           stargazers_count: repo.stargazers_count,
           forks_count: repo.forks_count,
           topics: repo.topics,
-          is_private: repo.private
+          is_private: repo.private,
         });
 
       if (repoError) throw repoError;
       onLink();
       onClose();
     } catch (err) {
-      setError('Failed to link repository');
+      setError("Failed to link repository");
     }
   };
 

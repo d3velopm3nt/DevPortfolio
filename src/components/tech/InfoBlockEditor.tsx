@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical, Link as LinkIcon, Image, Type, Loader2 } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import React, { useState } from "react";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  Link as LinkIcon,
+  Image,
+  Type,
+  Loader2,
+} from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface InfoItem {
   id: string;
-  type: 'text' | 'image' | 'link';
+  type: "text" | "image" | "link";
   content: string;
   order_index: number;
 }
@@ -15,27 +23,33 @@ interface InfoBlockEditorProps {
   isLoading?: boolean;
 }
 
-export function InfoBlockEditor({ items, onChange, isLoading = false }: InfoBlockEditorProps) {
-  const [newItemType, setNewItemType] = useState<'text' | 'image' | 'link'>('text');
+export function InfoBlockEditor({
+  items,
+  onChange,
+  isLoading = false,
+}: InfoBlockEditorProps) {
+  const [newItemType, setNewItemType] = useState<"text" | "image" | "link">(
+    "text",
+  );
 
   const handleAddItem = () => {
     const newItem: InfoItem = {
       id: crypto.randomUUID(),
       type: newItemType,
-      content: '',
-      order_index: items.length
+      content: "",
+      order_index: items.length,
     };
     onChange([...items, newItem]);
   };
 
   const handleRemoveItem = (id: string) => {
-    onChange(items.filter(item => item.id !== id));
+    onChange(items.filter((item) => item.id !== id));
   };
 
   const handleItemChange = (id: string, content: string) => {
-    onChange(items.map(item => 
-      item.id === id ? { ...item, content } : item
-    ));
+    onChange(
+      items.map((item) => (item.id === id ? { ...item, content } : item)),
+    );
   };
 
   const handleDragEnd = (result: any) => {
@@ -48,19 +62,19 @@ export function InfoBlockEditor({ items, onChange, isLoading = false }: InfoBloc
     // Update order_index values
     const updatedItems = reorderedItems.map((item, index) => ({
       ...item,
-      order_index: index
+      order_index: index,
     }));
 
     onChange(updatedItems);
   };
 
-  const getItemIcon = (type: 'text' | 'image' | 'link') => {
+  const getItemIcon = (type: "text" | "image" | "link") => {
     switch (type) {
-      case 'text':
+      case "text":
         return Type;
-      case 'image':
+      case "image":
         return Image;
-      case 'link':
+      case "link":
         return LinkIcon;
     }
   };
@@ -94,14 +108,17 @@ export function InfoBlockEditor({ items, onChange, isLoading = false }: InfoBloc
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <ItemIcon className="w-4 h-4 text-gray-500" />
+
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
                               {item.type}
                             </span>
                           </div>
-                          {item.type === 'text' ? (
+                          {item.type === "text" ? (
                             <textarea
                               value={item.content}
-                              onChange={(e) => handleItemChange(item.id, e.target.value)}
+                              onChange={(e) =>
+                                handleItemChange(item.id, e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                               rows={3}
                             />
@@ -109,8 +126,12 @@ export function InfoBlockEditor({ items, onChange, isLoading = false }: InfoBloc
                             <input
                               type="text"
                               value={item.content}
-                              onChange={(e) => handleItemChange(item.id, e.target.value)}
-                              placeholder={item.type === 'image' ? 'Image URL' : 'Link URL'}
+                              onChange={(e) =>
+                                handleItemChange(item.id, e.target.value)
+                              }
+                              placeholder={
+                                item.type === "image" ? "Image URL" : "Link URL"
+                              }
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                             />
                           )}
@@ -135,7 +156,9 @@ export function InfoBlockEditor({ items, onChange, isLoading = false }: InfoBloc
       <div className="flex items-center gap-4">
         <select
           value={newItemType}
-          onChange={(e) => setNewItemType(e.target.value as 'text' | 'image' | 'link')}
+          onChange={(e) =>
+            setNewItemType(e.target.value as "text" | "image" | "link")
+          }
           className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
         >
           <option value="text">Text</option>

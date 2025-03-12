@@ -1,6 +1,7 @@
 import { CropIcon as IconProps } from 'lucide-react';
 
 export interface Technology {
+  id: Key | null | undefined;
   name: string;
   type: TechStackSection;
   color: string;

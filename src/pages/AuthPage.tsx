@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseReady } from '../lib/supabase';
-import { Lock, Mail, Loader2, Github } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase, isSupabaseReady } from "../lib/supabase";
+import { Lock, Mail, Loader2, Github } from "lucide-react";
 
 export function AuthPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -16,7 +16,10 @@ export function AuthPage() {
     const checkGitHubConnection = async () => {
       const response = await supabase?.auth.getSession();
       const session = response?.data?.session;
-      setIsGitHubConnected(!!session?.provider_token && session?.user?.app_metadata?.provider === 'github');
+      setIsGitHubConnected(
+        !!session?.provider_token &&
+          session?.user?.app_metadata?.provider === "github",
+      );
     };
 
     checkGitHubConnection();
@@ -26,7 +29,8 @@ export function AuthPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Please click the "Connect to Supabase" button in the top right to set up your Supabase project.
+          Please click the "Connect to Supabase" button in the top right to set
+          up your Supabase project.
         </p>
       </div>
     );
@@ -41,11 +45,11 @@ export function AuthPage() {
       const response = isSignUp
         ? await supabase?.auth.signUp({ email, password })
         : await supabase?.auth.signInWithPassword({ email, password });
-      if (!response) throw new Error('Supabase client not initialized');
+      if (!response) throw new Error("Supabase client not initialized");
 
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -53,25 +57,27 @@ export function AuthPage() {
 
   const handleGitHubAuth = async () => {
     try {
-      const redirectUrl = process.env.NODE_ENV === 'development' 
-        ? 'http://localhost:5173/auth/callback'
-        : `${window.location.origin}/auth/callback`;
+      const redirectUrl =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5173/auth/callback"
+          : `${window.location.origin}/auth/callback`;
 
       const response = await supabase?.auth.signInWithOAuth({
-        provider: 'github',
+        provider: "github",
         options: {
-          scopes: 'repo read:user',
+          scopes: "repo read:user",
           redirectTo: redirectUrl,
           skipBrowserRedirect: false,
-        }
+        },
       });
-      
-      if (!response) throw new Error('Supabase client not initialized');
+
+      if (!response) throw new Error("Supabase client not initialized");
       if (response.error) throw response.error;
       if (response.data.url) window.location.href = response.data.url;
-      
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in with GitHub');
+      setError(
+        err instanceof Error ? err.message : "Failed to sign in with GitHub",
+      );
     }
   };
 
@@ -80,7 +86,7 @@ export function AuthPage() {
       <div className="w-full max-w-md">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-            {isSignUp ? 'Create your account' : 'Welcome back'}
+            {isSignUp ? "Create your account" : "Welcome back"}
           </h2>
 
           {error && (
@@ -96,7 +102,7 @@ export function AuthPage() {
               className="w-full flex items-center justify-center gap-3 px-4 py-2 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600"
             >
               <Github className="w-5 h-5" />
-              {isGitHubConnected ? 'GitHub Connected' : 'Continue with GitHub'}
+              {isGitHubConnected ? "GitHub Connected" : "Continue with GitHub"}
             </button>
 
             {isGitHubConnected && (
@@ -118,11 +124,15 @@ export function AuthPage() {
 
             <form onSubmit={handleEmailAuth} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Email
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+
                   <input
                     id="email"
                     type="email"
@@ -136,11 +146,15 @@ export function AuthPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Password
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+
                   <input
                     id="password"
                     type="password"
@@ -160,8 +174,10 @@ export function AuthPage() {
               >
                 {isLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
+                ) : isSignUp ? (
+                  "Create Account"
                 ) : (
-                  isSignUp ? 'Create Account' : 'Sign In'
+                  "Sign In"
                 )}
               </button>
             </form>
@@ -173,7 +189,7 @@ export function AuthPage() {
               className="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-500"
             >
               {isSignUp
-                ? 'Already have an account? Sign in'
+                ? "Already have an account? Sign in"
                 : "Don't have an account? Sign up"}
             </button>
           </div>

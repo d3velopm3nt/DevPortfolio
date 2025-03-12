@@ -1,10 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Code2, Package, Users, Plus, Loader2, X, Check, Library, Box, Globe } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { technologies } from '../data/technologies';
-import { ProjectCard } from '../components/ProjectCard';
-import { InfoBlockEditor } from '../components/tech/InfoBlockEditor';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Code2,
+  Package,
+  Users,
+  Plus,
+  Loader2,
+  X,
+  Check,
+  Library,
+  Box,
+  Globe,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { technologies } from "../data/technologies";
+import { ProjectCard } from "../components/ProjectCard";
+import { InfoBlockEditor } from "../components/tech/InfoBlockEditor";
 
 interface Project {
   id: string;
@@ -20,13 +32,13 @@ interface InfoBlock {
   id: string;
   title: string;
   description: string;
-  type: 'library' | 'package' | 'framework' | 'blog' | 'social_media';
+  type: "library" | "package" | "framework" | "blog" | "social_media";
   items: InfoItem[];
 }
 
 interface InfoItem {
   id: string;
-  type: 'text' | 'image' | 'link';
+  type: "text" | "image" | "link";
   content: string;
   order_index: number;
 }
@@ -41,15 +53,15 @@ export function TechnologyProfilePage() {
   const [isAddBlockModalOpen, setIsAddBlockModalOpen] = useState(false);
   const [editingBlock, setEditingBlock] = useState<InfoBlock | null>(null);
   const [blockForm, setBlockForm] = useState({
-    title: '',
-    description: '',
-    type: 'library' as InfoBlock['type'],
-    items: [] as InfoItem[]
+    title: "",
+    description: "",
+    type: "library" as InfoBlock["type"],
+    items: [] as InfoItem[],
   });
 
   // First get the technology ID from our technologies data
   const [technologyId, setTechnologyId] = useState<string | null>(null);
-  const technology = technologies.find(t => t.name === techName);
+  const technology = technologies.find((t) => t.name === techName);
 
   // Get the technology ID when component mounts
   useEffect(() => {
@@ -58,16 +70,16 @@ export function TechnologyProfilePage() {
 
       try {
         const { data, error } = await supabase
-          .from('technologies')
-          .select('id')
-          .eq('name', technology.name)
+          .from("technologies")
+          .select("id")
+          .eq("name", technology.name)
           .single();
 
         if (error) throw error;
         setTechnologyId(data.id);
       } catch (err) {
-        console.error('Error fetching technology ID:', err);
-        setError('Failed to load technology information');
+        console.error("Error fetching technology ID:", err);
+        setError("Failed to load technology information");
       }
     };
 
@@ -82,50 +94,60 @@ export function TechnologyProfilePage() {
 
   const fetchData = async () => {
     if (!technologyId) return;
-    
+
     try {
       setIsLoading(true);
-      
+
       // Fetch projects using this technology
       const { data: projectsData, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           *,
           project_technologies!inner (
             technology_id,
             technologies (*)
           )
-        `)
-        .eq('project_technologies.technology_id', technologyId);
+        `,
+        )
+        .eq("project_technologies.technology_id", technologyId);
 
       if (projectsError) throw projectsError;
 
       // Fetch info blocks
       const { data: blocksData, error: blocksError } = await supabase
-        .from('tech_info_blocks')
-        .select(`
+        .from("tech_info_blocks")
+        .select(
+          `
           *,
           tech_info_items (*)
-        `)
-        .eq('technology_id', technologyId)
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .eq("technology_id", technologyId)
+        .order("created_at", { ascending: false });
 
       if (blocksError) throw blocksError;
 
       // Transform projects data to include all technologies
-      const transformedProjects = projectsData.map(project => ({
+      const transformedProjects = projectsData.map((project) => ({
         ...project,
-        technologies: project.project_technologies.map((pt: any) => pt.technologies)
+        technologies: project.project_technologies.map(
+          (pt: any) => pt.technologies,
+        ),
       }));
 
       setProjects(transformedProjects);
-      setInfoBlocks(blocksData.map((block: any) => ({
-        ...block,
-        items: block.tech_info_items.sort((a: any, b: any) => a.order_index - b.order_index)
-      })));
+      setInfoBlocks(
+        blocksData.map((block: any) => ({
+          ...block,
+          items: block.tech_info_items.sort(
+            (a: any, b: any) => a.order_index - b.order_index,
+          ),
+        })),
+      );
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load data');
+      console.error("Error fetching data:", err);
+      setError("Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -138,23 +160,25 @@ export function TechnologyProfilePage() {
       // Create or update the block
       const { data: block, error: blockError } = editingBlock
         ? await supabase
-            .from('tech_info_blocks')
+            .from("tech_info_blocks")
             .update({
               title: blockForm.title,
               description: blockForm.description,
-              type: blockForm.type
+              type: blockForm.type,
             })
-            .eq('id', editingBlock.id)
+            .eq("id", editingBlock.id)
             .select()
             .single()
         : await supabase
-            .from('tech_info_blocks')
-            .insert([{
-              technology_id: technologyId,
-              title: blockForm.title,
-              description: blockForm.description,
-              type: blockForm.type
-            }])
+            .from("tech_info_blocks")
+            .insert([
+              {
+                technology_id: technologyId,
+                title: blockForm.title,
+                description: blockForm.description,
+                type: blockForm.type,
+              },
+            ])
             .select()
             .single();
 
@@ -163,22 +187,22 @@ export function TechnologyProfilePage() {
       // Delete existing items if editing
       if (editingBlock) {
         await supabase
-          .from('tech_info_items')
+          .from("tech_info_items")
           .delete()
-          .eq('block_id', editingBlock.id);
+          .eq("block_id", editingBlock.id);
       }
 
       // Create items
       if (blockForm.items.length > 0) {
         const { error: itemsError } = await supabase
-          .from('tech_info_items')
+          .from("tech_info_items")
           .insert(
             blockForm.items.map((item, index) => ({
               block_id: block.id,
               type: item.type,
               content: item.content,
-              order_index: index
-            }))
+              order_index: index,
+            })),
           );
 
         if (itemsError) throw itemsError;
@@ -187,25 +211,26 @@ export function TechnologyProfilePage() {
       await fetchData();
       handleCloseModal();
     } catch (err) {
-      console.error('Error saving block:', err);
-      setError('Failed to save info block');
+      console.error("Error saving block:", err);
+      setError("Failed to save info block");
     }
   };
 
   const handleDeleteBlock = async (blockId: string) => {
-    if (!window.confirm('Are you sure you want to delete this info block?')) return;
+    if (!window.confirm("Are you sure you want to delete this info block?"))
+      return;
 
     try {
       const { error } = await supabase
-        .from('tech_info_blocks')
+        .from("tech_info_blocks")
         .delete()
-        .eq('id', blockId);
+        .eq("id", blockId);
 
       if (error) throw error;
       await fetchData();
     } catch (err) {
-      console.error('Error deleting block:', err);
-      setError('Failed to delete info block');
+      console.error("Error deleting block:", err);
+      setError("Failed to delete info block");
     }
   };
 
@@ -215,7 +240,7 @@ export function TechnologyProfilePage() {
       title: block.title,
       description: block.description,
       type: block.type,
-      items: block.items
+      items: block.items,
     });
     setIsAddBlockModalOpen(true);
   };
@@ -224,23 +249,23 @@ export function TechnologyProfilePage() {
     setIsAddBlockModalOpen(false);
     setEditingBlock(null);
     setBlockForm({
-      title: '',
-      description: '',
-      type: 'library',
-      items: []
+      title: "",
+      description: "",
+      type: "library",
+      items: [],
     });
   };
 
-  const getBlockIcon = (type: InfoBlock['type']) => {
+  const getBlockIcon = (type: InfoBlock["type"]) => {
     switch (type) {
-      case 'library':
+      case "library":
         return Library;
-      case 'package':
+      case "package":
         return Box;
-      case 'framework':
+      case "framework":
         return Code2;
-      case 'blog':
-      case 'social_media':
+      case "blog":
+      case "social_media":
         return Globe;
       default:
         return Code2;
@@ -353,14 +378,17 @@ export function TechnologyProfilePage() {
 
                     <div className="space-y-4">
                       {block.items.map((item) => {
-                        if (item.type === 'text') {
+                        if (item.type === "text") {
                           return (
-                            <p key={item.id} className="text-gray-600 dark:text-gray-300">
+                            <p
+                              key={item.id}
+                              className="text-gray-600 dark:text-gray-300"
+                            >
                               {item.content}
                             </p>
                           );
                         }
-                        if (item.type === 'image') {
+                        if (item.type === "image") {
                           return (
                             <img
                               key={item.id}
@@ -370,7 +398,7 @@ export function TechnologyProfilePage() {
                             />
                           );
                         }
-                        if (item.type === 'link') {
+                        if (item.type === "link") {
                           return (
                             <a
                               key={item.id}
@@ -402,7 +430,7 @@ export function TechnologyProfilePage() {
             Projects Using {technology.name}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {projects.map(project => (
+            {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
@@ -416,7 +444,7 @@ export function TechnologyProfilePage() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingBlock ? 'Edit Info Block' : 'Add Info Block'}
+                  {editingBlock ? "Edit Info Block" : "Add Info Block"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
@@ -434,7 +462,9 @@ export function TechnologyProfilePage() {
                   <input
                     type="text"
                     value={blockForm.title}
-                    onChange={(e) => setBlockForm({ ...blockForm, title: e.target.value })}
+                    onChange={(e) =>
+                      setBlockForm({ ...blockForm, title: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -446,7 +476,12 @@ export function TechnologyProfilePage() {
                   </label>
                   <textarea
                     value={blockForm.description}
-                    onChange={(e) => setBlockForm({ ...blockForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setBlockForm({
+                        ...blockForm,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     rows={3}
                   />
@@ -458,7 +493,12 @@ export function TechnologyProfilePage() {
                   </label>
                   <select
                     value={blockForm.type}
-                    onChange={(e) => setBlockForm({ ...blockForm, type: e.target.value as InfoBlock['type'] })}
+                    onChange={(e) =>
+                      setBlockForm({
+                        ...blockForm,
+                        type: e.target.value as InfoBlock["type"],
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="library">Library</option>
@@ -492,7 +532,7 @@ export function TechnologyProfilePage() {
                     className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 flex items-center gap-2"
                   >
                     <Check className="w-4 h-4" />
-                    {editingBlock ? 'Update' : 'Create'}
+                    {editingBlock ? "Update" : "Create"}
                   </button>
                 </div>
               </div>

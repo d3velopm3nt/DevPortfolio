@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Loader2, X, Check, Monitor, Smartphone, Watch, Tv, Cpu } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Platform, OperatingSystem } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
+  Check,
+  Monitor,
+  Smartphone,
+  Watch,
+  Tv,
+  Cpu,
+} from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { Platform, OperatingSystem } from "../../types";
 
 interface PlatformFormData {
   name: string;
@@ -16,7 +28,9 @@ interface OSFormData {
 
 export function PlatformsManager() {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
-  const [operatingSystems, setOperatingSystems] = useState<OperatingSystem[]>([]);
+  const [operatingSystems, setOperatingSystems] = useState<OperatingSystem[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAddPlatformModalOpen, setIsAddPlatformModalOpen] = useState(false);
@@ -24,13 +38,13 @@ export function PlatformsManager() {
   const [editingPlatform, setEditingPlatform] = useState<Platform | null>(null);
   const [editingOS, setEditingOS] = useState<OperatingSystem | null>(null);
   const [platformForm, setPlatformForm] = useState<PlatformFormData>({
-    name: '',
-    description: ''
+    name: "",
+    description: "",
   });
   const [osForm, setOSForm] = useState<OSFormData>({
-    name: '',
-    version: '',
-    platform_id: ''
+    name: "",
+    version: "",
+    platform_id: "",
   });
 
   useEffect(() => {
@@ -40,8 +54,8 @@ export function PlatformsManager() {
   const fetchPlatformsAndOS = async () => {
     try {
       const [platformsResponse, osResponse] = await Promise.all([
-        supabase.from('platforms').select('*').order('name'),
-        supabase.from('operating_systems').select('*').order('name')
+        supabase.from("platforms").select("*").order("name"),
+        supabase.from("operating_systems").select("*").order("name"),
       ]);
 
       if (platformsResponse.error) throw platformsResponse.error;
@@ -50,8 +64,8 @@ export function PlatformsManager() {
       setPlatforms(platformsResponse.data);
       setOperatingSystems(osResponse.data);
     } catch (err) {
-      console.error('Error fetching platforms and OS:', err);
-      setError('Failed to load platforms and operating systems');
+      console.error("Error fetching platforms and OS:", err);
+      setError("Failed to load platforms and operating systems");
     } finally {
       setIsLoading(false);
     }
@@ -65,20 +79,18 @@ export function PlatformsManager() {
     try {
       const { error } = editingPlatform
         ? await supabase
-            .from('platforms')
+            .from("platforms")
             .update(platformForm)
-            .eq('id', editingPlatform.id)
-        : await supabase
-            .from('platforms')
-            .insert([platformForm]);
+            .eq("id", editingPlatform.id)
+        : await supabase.from("platforms").insert([platformForm]);
 
       if (error) throw error;
 
       await fetchPlatformsAndOS();
       handleClosePlatformModal();
     } catch (err) {
-      console.error('Error saving platform:', err);
-      setError('Failed to save platform');
+      console.error("Error saving platform:", err);
+      setError("Failed to save platform");
     } finally {
       setIsLoading(false);
     }
@@ -92,56 +104,64 @@ export function PlatformsManager() {
     try {
       const { error } = editingOS
         ? await supabase
-            .from('operating_systems')
+            .from("operating_systems")
             .update(osForm)
-            .eq('id', editingOS.id)
-        : await supabase
-            .from('operating_systems')
-            .insert([osForm]);
+            .eq("id", editingOS.id)
+        : await supabase.from("operating_systems").insert([osForm]);
 
       if (error) throw error;
 
       await fetchPlatformsAndOS();
       handleCloseOSModal();
     } catch (err) {
-      console.error('Error saving OS:', err);
-      setError('Failed to save operating system');
+      console.error("Error saving OS:", err);
+      setError("Failed to save operating system");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeletePlatform = async (platform: Platform) => {
-    if (!window.confirm(`Are you sure you want to delete ${platform.name}? This will also delete all associated operating systems.`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${platform.name}? This will also delete all associated operating systems.`,
+      )
+    )
+      return;
 
     try {
       const { error } = await supabase
-        .from('platforms')
+        .from("platforms")
         .delete()
-        .eq('id', platform.id);
+        .eq("id", platform.id);
 
       if (error) throw error;
       await fetchPlatformsAndOS();
     } catch (err) {
-      console.error('Error deleting platform:', err);
-      setError('Failed to delete platform');
+      console.error("Error deleting platform:", err);
+      setError("Failed to delete platform");
     }
   };
 
   const handleDeleteOS = async (os: OperatingSystem) => {
-    if (!window.confirm(`Are you sure you want to delete ${os.name} ${os.version}?`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${os.name} ${os.version}?`,
+      )
+    )
+      return;
 
     try {
       const { error } = await supabase
-        .from('operating_systems')
+        .from("operating_systems")
         .delete()
-        .eq('id', os.id);
+        .eq("id", os.id);
 
       if (error) throw error;
       await fetchPlatformsAndOS();
     } catch (err) {
-      console.error('Error deleting OS:', err);
-      setError('Failed to delete operating system');
+      console.error("Error deleting OS:", err);
+      setError("Failed to delete operating system");
     }
   };
 
@@ -149,7 +169,7 @@ export function PlatformsManager() {
     setEditingPlatform(platform);
     setPlatformForm({
       name: platform.name,
-      description: platform.description || ''
+      description: platform.description || "",
     });
     setIsAddPlatformModalOpen(true);
   };
@@ -158,8 +178,8 @@ export function PlatformsManager() {
     setEditingOS(os);
     setOSForm({
       name: os.name,
-      version: os.version || '',
-      platform_id: os.platform_id
+      version: os.version || "",
+      platform_id: os.platform_id,
     });
     setIsAddOSModalOpen(true);
   };
@@ -168,8 +188,8 @@ export function PlatformsManager() {
     setIsAddPlatformModalOpen(false);
     setEditingPlatform(null);
     setPlatformForm({
-      name: '',
-      description: ''
+      name: "",
+      description: "",
     });
   };
 
@@ -177,23 +197,23 @@ export function PlatformsManager() {
     setIsAddOSModalOpen(false);
     setEditingOS(null);
     setOSForm({
-      name: '',
-      version: '',
-      platform_id: ''
+      name: "",
+      version: "",
+      platform_id: "",
     });
   };
 
   const getPlatformIcon = (platformName: string) => {
     switch (platformName.toLowerCase()) {
-      case 'desktop':
+      case "desktop":
         return Monitor;
-      case 'mobile':
+      case "mobile":
         return Smartphone;
-      case 'watch':
+      case "watch":
         return Watch;
-      case 'tv':
+      case "tv":
         return Tv;
-      case 'iot':
+      case "iot":
         return Cpu;
       default:
         return Monitor;
@@ -212,7 +232,9 @@ export function PlatformsManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Platforms</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Platforms
+          </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Manage platforms and operating systems
           </p>
@@ -244,7 +266,9 @@ export function PlatformsManager() {
       <div className="grid grid-cols-1 gap-6">
         {platforms.map((platform) => {
           const PlatformIcon = getPlatformIcon(platform.name);
-          const platformOS = operatingSystems.filter(os => os.platform_id === platform.id);
+          const platformOS = operatingSystems.filter(
+            (os) => os.platform_id === platform.id,
+          );
 
           return (
             <div
@@ -328,7 +352,7 @@ export function PlatformsManager() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingPlatform ? 'Edit Platform' : 'Add Platform'}
+                  {editingPlatform ? "Edit Platform" : "Add Platform"}
                 </h2>
                 <button
                   onClick={handleClosePlatformModal}
@@ -346,7 +370,9 @@ export function PlatformsManager() {
                   <input
                     type="text"
                     value={platformForm.name}
-                    onChange={(e) => setPlatformForm({ ...platformForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setPlatformForm({ ...platformForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -358,7 +384,12 @@ export function PlatformsManager() {
                   </label>
                   <textarea
                     value={platformForm.description}
-                    onChange={(e) => setPlatformForm({ ...platformForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setPlatformForm({
+                        ...platformForm,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     rows={3}
                   />
@@ -385,7 +416,7 @@ export function PlatformsManager() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        {editingPlatform ? 'Update' : 'Create'}
+                        {editingPlatform ? "Update" : "Create"}
                       </>
                     )}
                   </button>
@@ -403,7 +434,7 @@ export function PlatformsManager() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingOS ? 'Edit Operating System' : 'Add Operating System'}
+                  {editingOS ? "Edit Operating System" : "Add Operating System"}
                 </h2>
                 <button
                   onClick={handleCloseOSModal}
@@ -420,7 +451,9 @@ export function PlatformsManager() {
                   </label>
                   <select
                     value={osForm.platform_id}
-                    onChange={(e) => setOSForm({ ...osForm, platform_id: e.target.value })}
+                    onChange={(e) =>
+                      setOSForm({ ...osForm, platform_id: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   >
@@ -440,7 +473,9 @@ export function PlatformsManager() {
                   <input
                     type="text"
                     value={osForm.name}
-                    onChange={(e) => setOSForm({ ...osForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setOSForm({ ...osForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -453,7 +488,9 @@ export function PlatformsManager() {
                   <input
                     type="text"
                     value={osForm.version}
-                    onChange={(e) => setOSForm({ ...osForm, version: e.target.value })}
+                    onChange={(e) =>
+                      setOSForm({ ...osForm, version: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -480,7 +517,7 @@ export function PlatformsManager() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        {editingOS ? 'Update' : 'Create'}
+                        {editingOS ? "Update" : "Create"}
                       </>
                     )}
                   </button>

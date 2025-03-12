@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Github, ArrowLeft, Loader2, Star, GitFork, Code2, Package } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import ReactMarkdown from 'react-markdown';
-import { useGitHubAuth } from '../hooks/useGitHubAuth';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Github,
+  ArrowLeft,
+  Loader2,
+  Star,
+  GitFork,
+  Code2,
+  Package,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import ReactMarkdown from "react-markdown";
+import { useGitHubAuth } from "../hooks/useGitHubAuth";
 
 interface Repository {
   id: string;
@@ -33,32 +41,37 @@ export function RepositoryProfilePage() {
     const fetchRepository = async () => {
       try {
         if (!isConnected || !providerToken) {
-          throw new Error('GitHub not connected');
+          throw new Error("GitHub not connected");
         }
-        if (!supabase) throw new Error('Supabase client not initialized');
+        if (!supabase) throw new Error("Supabase client not initialized");
         // First get the repository details from our database
         const { data: repoData, error: dbError } = await supabase
-          .from('github_repositories')
-          .select('*')
-          .eq('id', id)
+          .from("github_repositories")
+          .select("*")
+          .eq("id", id)
           .single();
 
-        if (dbError) throw new Error('Repository not found in database');
+        if (dbError) throw new Error("Repository not found in database");
 
         // Then fetch fresh data from GitHub API using the full_name
-        const response = await fetch(`https://api.github.com/repos/${repoData.full_name}`, {
-          headers: {
-            Authorization: `token ${providerToken}`,
-            Accept: 'application/vnd.github.v3+json'
-          }
-        });
+        const response = await fetch(
+          `https://api.github.com/repos/${repoData.full_name}`,
+          {
+            headers: {
+              Authorization: `token ${providerToken}`,
+              Accept: "application/vnd.github.v3+json",
+            },
+          },
+        );
 
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Repository not found on GitHub');
+            throw new Error("Repository not found on GitHub");
           }
           if (response.status === 401) {
-            throw new Error('GitHub authentication failed. Please reconnect your GitHub account.');
+            throw new Error(
+              "GitHub authentication failed. Please reconnect your GitHub account.",
+            );
           }
           throw new Error(`GitHub API error: ${response.status}`);
         }
@@ -67,8 +80,10 @@ export function RepositoryProfilePage() {
         setRepository(data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching repository:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load repository');
+        console.error("Error fetching repository:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to load repository",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -120,7 +135,7 @@ export function RepositoryProfilePage() {
     <div className="space-y-8">
       <div>
         <button
-          onClick={() => navigate('/github/repositories')}
+          onClick={() => navigate("/github/repositories")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -190,17 +205,21 @@ export function RepositoryProfilePage() {
                 Dependencies
               </h2>
               <div className="space-y-2">
-                {Object.entries(repository.dependencies).map(([name, version]) => (
-                  <div
-                    key={name}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <span className="text-gray-900 dark:text-white">{name}</span>
-                    <span className="text-gray-500 dark:text-gray-400">
-                      {version}
-                    </span>
-                  </div>
-                ))}
+                {Object.entries(repository.dependencies).map(
+                  ([name, version]) => (
+                    <div
+                      key={name}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-gray-900 dark:text-white">
+                        {name}
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-400">
+                        {version}
+                      </span>
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           )}
@@ -226,4 +245,4 @@ export function RepositoryProfilePage() {
       </div>
     </div>
   );
-} 
+}

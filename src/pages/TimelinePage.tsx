@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Timeline } from '../components/Timeline';
-import { SearchBar } from '../components/SearchBar';
-import { Technology } from '../types';
-import { supabase } from '../lib/supabase';
-import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Timeline } from "../components/Timeline";
+import { SearchBar } from "../components/SearchBar";
+import { Technology } from "../types";
+import { supabase } from "../lib/supabase";
+import { Loader2 } from "lucide-react";
 
 interface Project {
   id: string;
@@ -28,7 +28,7 @@ export function TimelinePage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedTechs, setSelectedTechs] = useState<Technology[]>([]);
 
   useEffect(() => {
@@ -37,12 +37,15 @@ export function TimelinePage() {
 
   const fetchProjects = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           *,
           project_technologies (
             technologies (*)
@@ -51,19 +54,24 @@ export function TimelinePage() {
             id,
             name
           )
-        `)
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setProjects(data.map(project => ({
-        ...project,
-        technologies: project.project_technologies.map((pt: any) => pt.technologies),
-        application: project.application
-      })));
+      setProjects(
+        data.map((project) => ({
+          ...project,
+          technologies: project.project_technologies.map(
+            (pt: any) => pt.technologies,
+          ),
+          application: project.application,
+        })),
+      );
     } catch (err) {
-      console.error('Error fetching projects:', err);
-      setError('Failed to load projects');
+      console.error("Error fetching projects:", err);
+      setError("Failed to load projects");
     } finally {
       setIsLoading(false);
     }
@@ -72,8 +80,8 @@ export function TimelinePage() {
   // Get all unique technologies from projects
   const availableTechs = React.useMemo(() => {
     const techMap = new Map<string, Technology>();
-    projects.forEach(project => {
-      project.technologies.forEach(tech => {
+    projects.forEach((project) => {
+      project.technologies.forEach((tech) => {
         if (!techMap.has(tech.name)) {
           techMap.set(tech.name, tech);
         }
@@ -83,24 +91,26 @@ export function TimelinePage() {
   }, [projects]);
 
   const handleTechToggle = (tech: Technology) => {
-    setSelectedTechs(prev => 
-      prev.some(t => t.name === tech.name)
-        ? prev.filter(t => t.name !== tech.name)
-        : [...prev, tech]
+    setSelectedTechs((prev) =>
+      prev.some((t) => t.name === tech.name)
+        ? prev.filter((t) => t.name !== tech.name)
+        : [...prev, tech],
     );
   };
 
   const filteredProjects = React.useMemo(() => {
-    return projects.filter(project => {
-      const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    return projects.filter((project) => {
+      const matchesSearch =
+        project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.technologies.some(tech => 
-          tech.name.toLowerCase().includes(searchTerm.toLowerCase())
+        project.technologies.some((tech) =>
+          tech.name.toLowerCase().includes(searchTerm.toLowerCase()),
         );
 
-      const matchesTechs = selectedTechs.length === 0 || 
-        selectedTechs.every(selectedTech =>
-          project.technologies.some(tech => tech.name === selectedTech.name)
+      const matchesTechs =
+        selectedTechs.length === 0 ||
+        selectedTechs.every((selectedTech) =>
+          project.technologies.some((tech) => tech.name === selectedTech.name),
         );
 
       return matchesSearch && matchesTechs;
@@ -125,8 +135,10 @@ export function TimelinePage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Project Timeline</h1>
-      
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+        Project Timeline
+      </h1>
+
       <SearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}

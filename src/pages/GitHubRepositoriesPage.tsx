@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Github, ArrowLeft, Plus, Loader2, Star, GitFork, Code2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useGitHubAuth } from '../hooks/useGitHubAuth';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import {
+  Github,
+  ArrowLeft,
+  Plus,
+  Loader2,
+  Star,
+  GitFork,
+  Code2,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useGitHubAuth } from "../hooks/useGitHubAuth";
 
 interface GitHubRepository {
   id: number;
@@ -25,7 +33,12 @@ interface ImportedRepository {
 
 export function GitHubRepositoriesPage() {
   const navigate = useNavigate();
-  const { isConnected, isLoading: isAuthLoading, error: authError, providerToken } = useGitHubAuth();
+  const {
+    isConnected,
+    isLoading: isAuthLoading,
+    error: authError,
+    providerToken,
+  } = useGitHubAuth();
   const [repositories, setRepositories] = useState<GitHubRepository[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +50,7 @@ export function GitHubRepositoriesPage() {
       setIsLoading(true);
       Promise.all([
         fetchGitHubRepositories(),
-        fetchImportedRepositories()
+        fetchImportedRepositories(),
       ]).finally(() => setIsLoading(false));
     }
   }, [isAuthLoading, isConnected, providerToken]);
@@ -45,44 +58,49 @@ export function GitHubRepositoriesPage() {
   const fetchGitHubRepositories = async () => {
     try {
       if (!providerToken) {
-        throw new Error('GitHub token not found');
+        throw new Error("GitHub token not found");
       }
 
-      const response = await fetch('https://api.github.com/user/repos?per_page=100', {
-        headers: {
-          Authorization: `Bearer ${providerToken}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
-      });
+      const response = await fetch(
+        "https://api.github.com/user/repos?per_page=100",
+        {
+          headers: {
+            Authorization: `Bearer ${providerToken}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch repositories from GitHub');
+        throw new Error("Failed to fetch repositories from GitHub");
       }
 
       const repos = await response.json();
       setRepositories(repos);
       setError(null);
     } catch (err) {
-      console.error('Error fetching GitHub repositories:', err);
-      setError('Failed to load repositories from GitHub');
+      console.error("Error fetching GitHub repositories:", err);
+      setError("Failed to load repositories from GitHub");
     }
   };
 
   const fetchImportedRepositories = async () => {
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('github_repositories')
-        .select('github_id, id, project_id')
-        .eq('user_id', user.id);
+        .from("github_repositories")
+        .select("github_id, id, project_id")
+        .eq("user_id", user.id);
 
       if (error) throw error;
       setImportedRepos(data || []);
     } catch (err) {
-      console.error('Error fetching imported repositories:', err);
+      console.error("Error fetching imported repositories:", err);
     }
   };
 
@@ -91,38 +109,45 @@ export function GitHubRepositoriesPage() {
     setError(null);
 
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // First save repository to our database
       const { error: repoError } = await supabase
-        .from('github_repositories')
-        .insert([{
-          user_id: user.id,
-          github_id: repo.id,
-          name: repo.name,
-          full_name: repo.full_name,
-          description: repo.description,
-          html_url: repo.html_url,
-          language: repo.language,
-          stargazers_count: repo.stargazers_count,
-          forks_count: repo.forks_count,
-          topics: repo.topics,
-          is_private: repo.private
-        }]);
+        .from("github_repositories")
+        .insert([
+          {
+            user_id: user.id,
+            github_id: repo.id,
+            name: repo.name,
+            full_name: repo.full_name,
+            description: repo.description,
+            html_url: repo.html_url,
+            language: repo.language,
+            stargazers_count: repo.stargazers_count,
+            forks_count: repo.forks_count,
+            topics: repo.topics,
+            is_private: repo.private,
+          },
+        ]);
 
       if (repoError) throw repoError;
 
       // Then create project
       const { data: project, error: projectError } = await supabase
-        .from('projects')
-        .insert([{
-          user_id: user.id,
-          title: repo.name,
-          description: repo.description || `Imported from GitHub: ${repo.full_name}`,
-          github_url: repo.html_url
-        }])
+        .from("projects")
+        .insert([
+          {
+            user_id: user.id,
+            title: repo.name,
+            description:
+              repo.description || `Imported from GitHub: ${repo.full_name}`,
+            github_url: repo.html_url,
+          },
+        ])
         .select()
         .single();
 
@@ -131,39 +156,39 @@ export function GitHubRepositoriesPage() {
       // Add language as a technology if it exists
       if (repo.language) {
         const { data: tech, error: techError } = await supabase
-          .from('technologies')
-          .select('id')
-          .eq('name', repo.language)
+          .from("technologies")
+          .select("id")
+          .eq("name", repo.language)
           .single();
 
         if (!techError && tech) {
-          await supabase
-            .from('project_technologies')
-            .insert([{
+          await supabase.from("project_technologies").insert([
+            {
               project_id: project.id,
-              technology_id: tech.id
-            }]);
+              technology_id: tech.id,
+            },
+          ]);
         }
       }
 
       navigate(`/projects/${project.id}`);
     } catch (err) {
-      console.error('Error importing repository:', err);
-      setError('Failed to import repository');
+      console.error("Error importing repository:", err);
+      setError("Failed to import repository");
     } finally {
       setIsImporting(null);
     }
   };
 
   const getImportedRepo = (githubId: number) => {
-    return importedRepos.find(repo => repo.github_id === githubId);
+    return importedRepos.find((repo) => repo.github_id === githubId);
   };
 
   return (
     <div className="space-y-8">
       <div>
         <button
-          onClick={() => navigate('/projects')}
+          onClick={() => navigate("/projects")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -193,7 +218,7 @@ export function GitHubRepositoriesPage() {
         </div>
       )}
 
-      {(isAuthLoading || isLoading) ? (
+      {isAuthLoading || isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
         </div>
@@ -238,9 +263,9 @@ export function GitHubRepositoriesPage() {
                         onClick={() => handleImportRepository(repo)}
                         disabled={isImporting === repo.id}
                         className={`flex items-center gap-2 px-4 py-2 ${
-                          isImported 
-                            ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                            : 'bg-indigo-600 text-white'
+                          isImported
+                            ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                            : "bg-indigo-600 text-white"
                         } rounded-lg hover:bg-opacity-90 disabled:opacity-50`}
                       >
                         {isImporting === repo.id ? (
@@ -294,7 +319,8 @@ export function GitHubRepositoriesPage() {
 
           {repositories.length === 0 && (
             <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
-              No repositories found. Connect your GitHub account to import repositories.
+              No repositories found. Connect your GitHub account to import
+              repositories.
             </div>
           )}
         </div>

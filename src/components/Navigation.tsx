@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  FolderGit2, 
-  Settings, 
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Menu,
+  X,
+  Home,
+  FolderGit2,
+  Settings,
   Github,
   TimerIcon,
   LogOut,
@@ -16,36 +16,36 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Terminal
-} from 'lucide-react';
-import { useAuthStore } from '../store/authStore';
-import { supabase } from '../lib/supabase';
-import { useGitHubAuth } from '../hooks/useGitHubAuth';
-import { useTheme } from '../context/ThemeContext';
-import { ConfirmDialog } from './ui/ConfirmDialog';
+  Terminal,
+} from "lucide-react";
+import { useAuthStore } from "../store/authStore";
+import { supabase } from "../lib/supabase";
+import { useGitHubAuth } from "../hooks/useGitHubAuth";
+import { useTheme } from "../context/ThemeContext";
+import { ConfirmDialog } from "./ui/ConfirmDialog";
 
 const mainMenuItems = [
-  { 
-    label: 'Dashboard', 
+  {
+    label: "Dashboard",
     icon: Home,
-    path: '/dashboard',
+    path: "/dashboard",
   },
   {
-    label: 'Portfolio',
+    label: "Portfolio",
     icon: Layout,
-    path: '/portfolio',
+    path: "/portfolio",
     children: [
-      { path: '/timeline', label: 'Timeline', icon: TimerIcon },
-      { path: '/tech-stacks', label: 'Tech Stacks', icon: Code },
-      { path: '/applications', label: 'Applications', icon: Layout },
-      { path: '/projects', label: 'Projects', icon: FolderGit2 },
-    ]
+      { path: "/timeline", label: "Timeline", icon: TimerIcon },
+      { path: "/tech-stacks", label: "Tech Stacks", icon: Code },
+      { path: "/applications", label: "Applications", icon: Layout },
+      { path: "/projects", label: "Projects", icon: FolderGit2 },
+    ],
   },
   {
-    label: 'Tech Feed',
+    label: "Tech Feed",
     icon: Newspaper,
-    path: '/feed',
-  }
+    path: "/feed",
+  },
 ];
 
 export function Navigation() {
@@ -64,32 +64,34 @@ export function Navigation() {
 
   const handleDisconnect = async () => {
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           github_username: null,
           github_access_token: null,
           github_refresh_token: null,
           github_token_expires_at: null,
-          github_last_sync_at: null
+          github_last_sync_at: null,
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
       // Delete repositories
       await supabase
-        .from('github_repositories')
+        .from("github_repositories")
         .delete()
-        .eq('user_id', user.id);
+        .eq("user_id", user.id);
 
       window.location.reload();
     } catch (err) {
-      console.error('Error disconnecting GitHub:', err);
+      console.error("Error disconnecting GitHub:", err);
     }
   };
 
@@ -108,18 +110,21 @@ export function Navigation() {
           <div className="flex items-center justify-between h-16">
             {/* Logo and Theme Toggle */}
             <div className="flex items-center gap-4">
-              <Link to="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+              <Link
+                to="/"
+                className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white"
+              >
                 <Terminal className="w-6 h-6" />
                 DevPort
               </Link>
-              
+
               {/* Theme Toggle moved here */}
               <button
                 onClick={toggleTheme}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Toggle theme"
               >
-                {theme === 'dark' ? (
+                {theme === "dark" ? (
                   <Sun className="w-5 h-5" />
                 ) : (
                   <Moon className="w-5 h-5" />
@@ -140,8 +145,8 @@ export function Navigation() {
                           <button
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                               isActive(item.path)
-                                ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                                : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                                ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                                : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]"
                             }`}
                           >
                             <Icon className="w-4 h-4" />
@@ -158,6 +163,7 @@ export function Navigation() {
                                   className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 >
                                   <ChildIcon className="w-4 h-4" />
+
                                   {child.label}
                                 </Link>
                               );
@@ -169,8 +175,8 @@ export function Navigation() {
                           to={item.path}
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                             isActive(item.path)
-                              ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                              : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                              ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                              : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]"
                           }`}
                         >
                           <Icon className="w-4 h-4" />
@@ -186,9 +192,9 @@ export function Navigation() {
                   {isConnected ? (
                     <button
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
-                        isActive('/github')
-                          ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                        isActive("/github")
+                          ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                          : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]"
                       }`}
                     >
                       <Github className="w-4 h-4" />
@@ -202,19 +208,23 @@ export function Navigation() {
                     <button
                       onClick={async () => {
                         try {
-                          if (!supabase) throw new Error('Supabase client not initialized');
-                          const { data: { url }, error } = await supabase.auth.signInWithOAuth({
-                            provider: 'github',
+                          if (!supabase)
+                            throw new Error("Supabase client not initialized");
+                          const {
+                            data: { url },
+                            error,
+                          } = await supabase.auth.signInWithOAuth({
+                            provider: "github",
                             options: {
-                              scopes: 'repo read:user',
-                              redirectTo: `${window.location.origin}/auth/callback`
-                            }
+                              scopes: "repo read:user",
+                              redirectTo: `${window.location.origin}/auth/callback`,
+                            },
                           });
 
                           if (error) throw error;
                           if (url) window.location.href = url;
                         } catch (err) {
-                          console.error('Error connecting GitHub:', err);
+                          console.error("Error connecting GitHub:", err);
                         }
                       }}
                       className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-[#2A2D35] text-white rounded-lg hover:bg-gray-800"
@@ -283,7 +293,11 @@ export function Navigation() {
                 onClick={() => setIsOpen(!isOpen)}
                 className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg"
               >
-                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isOpen ? (
+                  <X className="w-6 h-6" />
+                ) : (
+                  <Menu className="w-6 h-6" />
+                )}
               </button>
             )}
           </div>
@@ -302,17 +316,19 @@ export function Navigation() {
                         onClick={() => toggleDropdown(item.label)}
                         className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium w-full ${
                           isActive(item.path)
-                            ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                            : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                            ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                            : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]"
                         }`}
                       >
                         <span className="flex items-center gap-2">
                           <Icon className="w-4 h-4" />
                           {item.label}
                         </span>
-                        <ChevronDown 
+                        <ChevronDown
                           className={`w-4 h-4 transition-transform duration-200 ${
-                            openDropdown === item.label ? 'transform rotate-180' : ''
+                            openDropdown === item.label
+                              ? "transform rotate-180"
+                              : ""
                           }`}
                         />
                       </button>
@@ -331,6 +347,7 @@ export function Navigation() {
                                 }}
                               >
                                 <ChildIcon className="w-4 h-4" />
+
                                 {child.label}
                               </Link>
                             );
@@ -343,8 +360,8 @@ export function Navigation() {
                       to={item.path}
                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium ${
                         isActive(item.path)
-                          ? 'bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white'
-                          : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]'
+                          ? "bg-gray-100 dark:bg-[#2A2D35] text-gray-900 dark:text-white"
+                          : "text-gray-400 hover:bg-gray-100 dark:hover:bg-[#2A2D35]"
                       }`}
                       onClick={() => setIsOpen(false)}
                     >
@@ -361,20 +378,20 @@ export function Navigation() {
               {isConnected ? (
                 <>
                   <button
-                    onClick={() => toggleDropdown('github')}
+                    onClick={() => toggleDropdown("github")}
                     className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 w-full"
                   >
                     <span className="flex items-center gap-2">
                       <Github className="w-4 h-4" />
                       {username}
                     </span>
-                    <ChevronDown 
+                    <ChevronDown
                       className={`w-4 h-4 transition-transform duration-200 ${
-                        openDropdown === 'github' ? 'transform rotate-180' : ''
+                        openDropdown === "github" ? "transform rotate-180" : ""
                       }`}
                     />
                   </button>
-                  {openDropdown === 'github' && (
+                  {openDropdown === "github" && (
                     <div className="pl-4 space-y-1">
                       <Link
                         to="/github/repositories"
@@ -416,19 +433,23 @@ export function Navigation() {
                 <button
                   onClick={async () => {
                     try {
-                      if (!supabase) throw new Error('Supabase client not initialized');
-                      const { data: { url }, error } = await supabase.auth.signInWithOAuth({
-                        provider: 'github',
+                      if (!supabase)
+                        throw new Error("Supabase client not initialized");
+                      const {
+                        data: { url },
+                        error,
+                      } = await supabase.auth.signInWithOAuth({
+                        provider: "github",
                         options: {
-                          scopes: 'repo read:user',
-                          redirectTo: `${window.location.origin}/auth/callback`
-                        }
+                          scopes: "repo read:user",
+                          redirectTo: `${window.location.origin}/auth/callback`,
+                        },
                       });
 
                       if (error) throw error;
                       if (url) window.location.href = url;
                     } catch (err) {
-                      console.error('Error connecting GitHub:', err);
+                      console.error("Error connecting GitHub:", err);
                     }
                   }}
                   className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white bg-gray-900 dark:bg-[#2A2D35] w-full"

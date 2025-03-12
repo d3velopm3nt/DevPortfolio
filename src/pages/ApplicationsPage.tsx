@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Search, Loader2, AppWindow } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { AddApplicationModal } from '../components/applications/AddApplicationModal';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Plus, Search, Loader2, AppWindow } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { AddApplicationModal } from "../components/applications/AddApplicationModal";
 
 interface Application {
   id: string;
@@ -18,33 +18,39 @@ interface Application {
 export function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchApplications = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('applications')
-        .select(`
+        .from("applications")
+        .select(
+          `
           *,
           project_count:projects(count)
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setApplications(data.map(app => ({
-        ...app,
-        project_count: app.project_count[0].count
-      })));
+      setApplications(
+        data.map((app) => ({
+          ...app,
+          project_count: app.project_count[0].count,
+        })),
+      );
     } catch (err) {
-      console.error('Error fetching applications:', err);
-      setError('Failed to load applications');
+      console.error("Error fetching applications:", err);
+      setError("Failed to load applications");
     } finally {
       setIsLoading(false);
     }
@@ -54,15 +60,18 @@ export function ApplicationsPage() {
     fetchApplications();
   }, []);
 
-  const filteredApplications = applications.filter(app =>
-    app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredApplications = applications.filter(
+    (app) =>
+      app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.description?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Applications</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Applications
+        </h1>
         <button
           onClick={() => setIsAddModalOpen(true)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500"
@@ -74,7 +83,11 @@ export function ApplicationsPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={20}
+        />
+
         <input
           type="text"
           placeholder="Search applications..."
@@ -119,11 +132,12 @@ export function ApplicationsPage() {
                       {app.name}
                     </h3>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {app.project_count} {app.project_count === 1 ? 'Project' : 'Projects'}
+                      {app.project_count}{" "}
+                      {app.project_count === 1 ? "Project" : "Projects"}
                     </p>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
                   {app.description}
                 </p>

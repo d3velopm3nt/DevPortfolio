@@ -1,8 +1,8 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { techCategories } from '../data/techCategories';
-import { ArrowRight } from 'lucide-react';
-import { TechStackLayers } from '../components/TechStackLayers';
+import React from "react";
+import { Link } from "react-router-dom";
+import { techCategories } from "../data/techCategories";
+import { ArrowRight } from "lucide-react";
+import { TechStackLayers } from "../components/TechStackLayers";
 
 export function LandingPage() {
   return (
@@ -27,8 +27,9 @@ export function LandingPage() {
               <span className="text-indigo-600">Tech Stack</span>
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              A powerful platform for developers to showcase their technical expertise,
-              from languages to deployment tools. Stand out with a comprehensive view of your skills.
+              A powerful platform for developers to showcase their technical
+              expertise, from languages to deployment tools. Stand out with a
+              comprehensive view of your skills.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
@@ -55,7 +56,8 @@ export function LandingPage() {
             Your Complete Tech Arsenal
           </h2>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-            Explore the full spectrum of development technologies at your command
+            Explore the full spectrum of development technologies at your
+            command
           </p>
         </div>
 
@@ -69,7 +71,8 @@ export function LandingPage() {
             Showcase Your Full Stack Expertise
           </h2>
           <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-            From frontend to deployment, demonstrate your mastery across the entire development stack.
+            From frontend to deployment, demonstrate your mastery across the
+            entire development stack.
           </p>
         </div>
 
@@ -105,20 +108,23 @@ export function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              title: 'Interactive Tech Stack',
-              description: 'Showcase your expertise with interactive, categorized technology displays.',
-              color: 'bg-blue-500/10 text-blue-600'
+              title: "Interactive Tech Stack",
+              description:
+                "Showcase your expertise with interactive, categorized technology displays.",
+              color: "bg-blue-500/10 text-blue-600",
             },
             {
-              title: 'Project Timeline',
-              description: 'Display your journey with a beautiful, chronological project timeline.',
-              color: 'bg-purple-500/10 text-purple-600'
+              title: "Project Timeline",
+              description:
+                "Display your journey with a beautiful, chronological project timeline.",
+              color: "bg-purple-500/10 text-purple-600",
             },
             {
-              title: 'Skill Analytics',
-              description: 'Visualize your technology proficiency with detailed analytics.',
-              color: 'bg-green-500/10 text-green-600'
-            }
+              title: "Skill Analytics",
+              description:
+                "Visualize your technology proficiency with detailed analytics.",
+              color: "bg-green-500/10 text-green-600",
+            },
           ].map((feature) => (
             <div
               key={feature.title}
@@ -145,8 +151,8 @@ export function LandingPage() {
             Ready to Showcase Your Tech Stack?
           </h2>
           <p className="text-indigo-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of developers who use our platform to demonstrate their technical expertise
-            and stand out in the industry.
+            Join thousands of developers who use our platform to demonstrate
+            their technical expertise and stand out in the industry.
           </p>
           <Link
             to="/auth"

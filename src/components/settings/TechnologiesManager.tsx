@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Loader2, X, Check, Code2, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { techCategories } from '../../data/techCategories';
-import { Technology } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
+  Check,
+  Code2,
+  ExternalLink,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
+import { techCategories } from "../../data/techCategories";
+import { Technology } from "../../types";
 
 interface TechnologyFormData {
   name: string;
@@ -19,24 +28,24 @@ export function TechnologiesManager() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingTech, setEditingTech] = useState<Technology | null>(null);
   const [formData, setFormData] = useState<TechnologyFormData>({
-    name: '',
+    name: "",
     type: techCategories[0].id,
-    color: 'bg-blue-500/10 text-blue-600',
-    description: ''
+    color: "bg-blue-500/10 text-blue-600",
+    description: "",
   });
 
   const fetchTechnologies = async () => {
     try {
       const { data, error } = await supabase
-        .from('technologies')
-        .select('*')
-        .order('name');
+        .from("technologies")
+        .select("*")
+        .order("name");
 
       if (error) throw error;
       setTechnologies(data);
     } catch (err) {
-      console.error('Error fetching technologies:', err);
-      setError('Failed to load technologies');
+      console.error("Error fetching technologies:", err);
+      setError("Failed to load technologies");
     } finally {
       setIsLoading(false);
     }
@@ -54,44 +63,43 @@ export function TechnologiesManager() {
     try {
       const { error } = editingTech
         ? await supabase
-            .from('technologies')
+            .from("technologies")
             .update({
               name: formData.name,
               type: formData.type,
               color: formData.color,
-              description: formData.description
+              description: formData.description,
             })
-            .eq('id', editingTech.id)
-        : await supabase
-            .from('technologies')
-            .insert([formData]);
+            .eq("id", editingTech.id)
+        : await supabase.from("technologies").insert([formData]);
 
       if (error) throw error;
 
       await fetchTechnologies();
       handleCloseModal();
     } catch (err) {
-      console.error('Error saving technology:', err);
-      setError('Failed to save technology');
+      console.error("Error saving technology:", err);
+      setError("Failed to save technology");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (tech: Technology) => {
-    if (!window.confirm(`Are you sure you want to delete ${tech.name}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${tech.name}?`))
+      return;
 
     try {
       const { error } = await supabase
-        .from('technologies')
+        .from("technologies")
         .delete()
-        .eq('id', tech.id);
+        .eq("id", tech.id);
 
       if (error) throw error;
       await fetchTechnologies();
     } catch (err) {
-      console.error('Error deleting technology:', err);
-      setError('Failed to delete technology');
+      console.error("Error deleting technology:", err);
+      setError("Failed to delete technology");
     }
   };
 
@@ -101,7 +109,7 @@ export function TechnologiesManager() {
       name: tech.name,
       type: tech.type,
       color: tech.color,
-      description: tech.description || ''
+      description: tech.description || "",
     });
     setIsAddModalOpen(true);
   };
@@ -110,10 +118,10 @@ export function TechnologiesManager() {
     setIsAddModalOpen(false);
     setEditingTech(null);
     setFormData({
-      name: '',
+      name: "",
       type: techCategories[0].id,
-      color: 'bg-blue-500/10 text-blue-600',
-      description: ''
+      color: "bg-blue-500/10 text-blue-600",
+      description: "",
     });
   };
 
@@ -129,7 +137,9 @@ export function TechnologiesManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Technologies</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Technologies
+          </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Manage the technologies available in your portfolio
           </p>
@@ -160,8 +170,12 @@ export function TechnologiesManager() {
                 <Code2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 dark:text-white">{tech.name}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{tech.type}</p>
+                <h3 className="font-medium text-gray-900 dark:text-white">
+                  {tech.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                  {tech.type}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -195,7 +209,7 @@ export function TechnologiesManager() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingTech ? 'Edit Technology' : 'Add Technology'}
+                  {editingTech ? "Edit Technology" : "Add Technology"}
                 </h2>
                 <button
                   onClick={handleCloseModal}
@@ -213,7 +227,9 @@ export function TechnologiesManager() {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -225,7 +241,9 @@ export function TechnologiesManager() {
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     {techCategories.map((category) => (
@@ -242,16 +260,26 @@ export function TechnologiesManager() {
                   </label>
                   <select
                     value={formData.color}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, color: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="bg-blue-500/10 text-blue-600">Blue</option>
-                    <option value="bg-purple-500/10 text-purple-600">Purple</option>
-                    <option value="bg-green-500/10 text-green-600">Green</option>
+                    <option value="bg-purple-500/10 text-purple-600">
+                      Purple
+                    </option>
+                    <option value="bg-green-500/10 text-green-600">
+                      Green
+                    </option>
                     <option value="bg-red-500/10 text-red-600">Red</option>
-                    <option value="bg-yellow-500/10 text-yellow-600">Yellow</option>
+                    <option value="bg-yellow-500/10 text-yellow-600">
+                      Yellow
+                    </option>
                     <option value="bg-pink-500/10 text-pink-600">Pink</option>
-                    <option value="bg-indigo-500/10 text-indigo-600">Indigo</option>
+                    <option value="bg-indigo-500/10 text-indigo-600">
+                      Indigo
+                    </option>
                   </select>
                 </div>
 
@@ -261,7 +289,9 @@ export function TechnologiesManager() {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     rows={3}
                   />
@@ -288,7 +318,7 @@ export function TechnologiesManager() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        {editingTech ? 'Update' : 'Create'}
+                        {editingTech ? "Update" : "Create"}
                       </>
                     )}
                   </button>

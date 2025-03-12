@@ -1,5 +1,5 @@
-import React from 'react';
-import { X } from 'lucide-react';
+import React from "react";
+import { X } from "lucide-react";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -17,8 +17,8 @@ export function ConfirmDialog({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel'
+  confirmText = "Confirm",
+  cancelText = "Cancel",
 }: ConfirmDialogProps) {
   if (!isOpen) return null;
 
@@ -36,11 +36,9 @@ export function ConfirmDialog({
             <X className="w-5 h-5" />
           </button>
         </div>
-        
+
         <div className="p-4">
-          <p className="text-gray-600 dark:text-gray-300">
-            {message}
-          </p>
+          <p className="text-gray-600 dark:text-gray-300">{message}</p>
         </div>
 
         <div className="flex items-center justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700">
@@ -63,4 +61,4 @@ export function ConfirmDialog({
       </div>
     </div>
   );
-} 
+}

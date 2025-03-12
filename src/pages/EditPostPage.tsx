@@ -1,9 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Loader2, Check, X, Library, Code2, Image as ImageIcon, Link as LinkIcon, BookOpen, Newspaper, GripVertical } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { supabase } from '../lib/supabase';
-import { Technology } from '../types';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  Plus,
+  Loader2,
+  Check,
+  X,
+  Library,
+  Code2,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  BookOpen,
+  Newspaper,
+  GripVertical,
+} from "lucide-react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { supabase } from "../lib/supabase";
+import { Technology } from "../types";
 
 interface Resource {
   id: string;
@@ -17,10 +30,10 @@ interface InfoBlock {
   id: string;
   title: string;
   description: string;
-  type: 'code' | 'image' | 'link' | 'text' | 'resource';
+  type: "code" | "image" | "link" | "text" | "resource";
   items: Array<{
     id: string;
-    type: 'text' | 'image' | 'link' | 'code';
+    type: "text" | "image" | "link" | "code";
     content: string;
   }>;
 }
@@ -36,20 +49,20 @@ export function EditPostPage() {
   const [isAddingResource, setIsAddingResource] = useState(false);
 
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    type: 'article' as const,
+    title: "",
+    content: "",
+    type: "article" as const,
     technologies: [] as string[],
     resource: null as string | null,
-    info_blocks: [] as InfoBlock[]
+    info_blocks: [] as InfoBlock[],
   });
 
   const [resourceForm, setResourceForm] = useState({
-    name: '',
-    type: 'library' as const,
-    website_url: '',
-    github_url: '',
-    technologies: [] as string[]
+    name: "",
+    type: "library" as const,
+    website_url: "",
+    github_url: "",
+    technologies: [] as string[],
   });
 
   useEffect(() => {
@@ -58,18 +71,14 @@ export function EditPostPage() {
 
   const fetchData = async () => {
     try {
-      const [techResponse, resourcesResponse, postResponse] = await Promise.all([
-        supabase
-          .from('technologies')
-          .select('*')
-          .order('name'),
-        supabase
-          .from('resources')
-          .select('*')
-          .order('name'),
-        supabase
-          .from('tech_feed_posts')
-          .select(`
+      const [techResponse, resourcesResponse, postResponse] = await Promise.all(
+        [
+          supabase.from("technologies").select("*").order("name"),
+          supabase.from("resources").select("*").order("name"),
+          supabase
+            .from("tech_feed_posts")
+            .select(
+              `
             *,
             tech_feed_post_technologies(
               technologies(*)
@@ -87,10 +96,12 @@ export function EditPostPage() {
                 order_index
               )
             )
-          `)
-          .eq('id', id)
-          .single()
-      ]);
+          `,
+            )
+            .eq("id", id)
+            .single(),
+        ],
+      );
 
       if (techResponse.error) throw techResponse.error;
       if (resourcesResponse.error) throw resourcesResponse.error;
@@ -104,27 +115,29 @@ export function EditPostPage() {
         title: postResponse.data.title,
         content: postResponse.data.content,
         type: postResponse.data.type,
-        technologies: postResponse.data.tech_feed_post_technologies.map((pt: any) => pt.technologies.id),
+        technologies: postResponse.data.tech_feed_post_technologies.map(
+          (pt: any) => pt.technologies.id,
+        ),
         resource: postResponse.data.resource_id,
         info_blocks: postResponse.data.info_blocks
           .sort((a: any, b: any) => a.order_index - b.order_index)
           .map((block: any) => ({
             id: block.id,
             title: block.title,
-            description: block.description || '',
+            description: block.description || "",
             type: block.type,
             items: block.items
               .sort((a: any, b: any) => a.order_index - b.order_index)
               .map((item: any) => ({
                 id: item.id,
                 type: item.type,
-                content: item.content
-              }))
-          }))
+                content: item.content,
+              })),
+          })),
       });
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load post data');
+      console.error("Error fetching data:", err);
+      setError("Failed to load post data");
     } finally {
       setIsLoading(false);
     }
@@ -137,13 +150,15 @@ export function EditPostPage() {
 
     try {
       const { data: resource, error: resourceError } = await supabase
-        .from('resources')
-        .insert([{
-          name: resourceForm.name,
-          type: resourceForm.type,
-          website_url: resourceForm.website_url,
-          github_url: resourceForm.github_url
-        }])
+        .from("resources")
+        .insert([
+          {
+            name: resourceForm.name,
+            type: resourceForm.type,
+            website_url: resourceForm.website_url,
+            github_url: resourceForm.github_url,
+          },
+        ])
         .select()
         .single();
 
@@ -151,23 +166,23 @@ export function EditPostPage() {
 
       if (resourceForm.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('resource_technologies')
+          .from("resource_technologies")
           .insert(
-            resourceForm.technologies.map(techId => ({
+            resourceForm.technologies.map((techId) => ({
               resource_id: resource.id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
       }
 
       await fetchData();
-      setFormData(prev => ({ ...prev, resource: resource.id }));
+      setFormData((prev) => ({ ...prev, resource: resource.id }));
       setIsAddingResource(false);
     } catch (err) {
-      console.error('Error creating resource:', err);
-      setError('Failed to create resource');
+      console.error("Error creating resource:", err);
+      setError("Failed to create resource");
     } finally {
       setIsSaving(false);
     }
@@ -179,36 +194,38 @@ export function EditPostPage() {
     setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Update post
       const { error: postError } = await supabase
-        .from('tech_feed_posts')
+        .from("tech_feed_posts")
         .update({
           title: formData.title,
           content: formData.content,
           type: formData.type,
-          resource_id: formData.resource
+          resource_id: formData.resource,
         })
-        .eq('id', id);
+        .eq("id", id);
 
       if (postError) throw postError;
 
       // Update technologies
       await supabase
-        .from('tech_feed_post_technologies')
+        .from("tech_feed_post_technologies")
         .delete()
-        .eq('post_id', id);
+        .eq("post_id", id);
 
       if (formData.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('tech_feed_post_technologies')
+          .from("tech_feed_post_technologies")
           .insert(
-            formData.technologies.map(techId => ({
+            formData.technologies.map((techId) => ({
               post_id: id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
@@ -216,22 +233,24 @@ export function EditPostPage() {
 
       // Update info blocks
       await supabase
-        .from('tech_feed_post_info_blocks')
+        .from("tech_feed_post_info_blocks")
         .delete()
-        .eq('post_id', id);
+        .eq("post_id", id);
 
       for (let i = 0; i < formData.info_blocks.length; i++) {
         const block = formData.info_blocks[i];
-        
+
         const { data: infoBlock, error: blockError } = await supabase
-          .from('tech_feed_post_info_blocks')
-          .insert([{
-            post_id: id,
-            title: block.title,
-            description: block.description,
-            type: block.type,
-            order_index: i
-          }])
+          .from("tech_feed_post_info_blocks")
+          .insert([
+            {
+              post_id: id,
+              title: block.title,
+              description: block.description,
+              type: block.type,
+              order_index: i,
+            },
+          ])
           .select()
           .single();
 
@@ -239,24 +258,24 @@ export function EditPostPage() {
 
         if (block.items.length > 0) {
           const { error: itemsError } = await supabase
-            .from('tech_feed_post_info_items')
+            .from("tech_feed_post_info_items")
             .insert(
               block.items.map((item, index) => ({
                 block_id: infoBlock.id,
                 type: item.type,
                 content: item.content,
-                order_index: index
-              }))
+                order_index: index,
+              })),
             );
 
           if (itemsError) throw itemsError;
         }
       }
 
-      navigate('/feed');
+      navigate("/feed");
     } catch (err) {
-      console.error('Error updating post:', err);
-      setError('Failed to update post');
+      console.error("Error updating post:", err);
+      setError("Failed to update post");
     } finally {
       setIsSaving(false);
     }
@@ -265,29 +284,32 @@ export function EditPostPage() {
   const handleAddBlock = () => {
     const newBlock: InfoBlock = {
       id: crypto.randomUUID(),
-      title: '',
-      description: '',
-      type: 'text',
-      items: []
+      title: "",
+      description: "",
+      type: "text",
+      items: [],
     };
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      info_blocks: [...prev.info_blocks, newBlock]
+      info_blocks: [...prev.info_blocks, newBlock],
     }));
   };
 
   const handleRemoveBlock = (blockId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      info_blocks: prev.info_blocks.filter(block => block.id !== blockId)
+      info_blocks: prev.info_blocks.filter((block) => block.id !== blockId),
     }));
   };
 
-  const handleAddItem = (blockId: string, type: 'text' | 'image' | 'link' | 'code') => {
-    setFormData(prev => ({
+  const handleAddItem = (
+    blockId: string,
+    type: "text" | "image" | "link" | "code",
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      info_blocks: prev.info_blocks.map(block => {
+      info_blocks: prev.info_blocks.map((block) => {
         if (block.id === blockId) {
           return {
             ...block,
@@ -296,28 +318,28 @@ export function EditPostPage() {
               {
                 id: crypto.randomUUID(),
                 type,
-                content: ''
-              }
-            ]
+                content: "",
+              },
+            ],
           };
         }
         return block;
-      })
+      }),
     }));
   };
 
   const handleRemoveItem = (blockId: string, itemId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      info_blocks: prev.info_blocks.map(block => {
+      info_blocks: prev.info_blocks.map((block) => {
         if (block.id === blockId) {
           return {
             ...block,
-            items: block.items.filter(item => item.id !== itemId)
+            items: block.items.filter((item) => item.id !== itemId),
           };
         }
         return block;
-      })
+      }),
     }));
   };
 
@@ -328,7 +350,7 @@ export function EditPostPage() {
     const [removed] = blocks.splice(result.source.index, 1);
     blocks.splice(result.destination.index, 0, removed);
 
-    setFormData(prev => ({ ...prev, info_blocks: blocks }));
+    setFormData((prev) => ({ ...prev, info_blocks: blocks }));
   };
 
   if (isLoading) {
@@ -344,14 +366,16 @@ export function EditPostPage() {
       {/* Header */}
       <div>
         <button
-          onClick={() => navigate('/feed')}
+          onClick={() => navigate("/feed")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Feed
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Edit Post</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Edit Post
+        </h1>
       </div>
 
       {error && (
@@ -363,7 +387,9 @@ export function EditPostPage() {
       {isAddingResource ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Add Resource</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Add Resource
+            </h2>
             <button
               onClick={() => setIsAddingResource(false)}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
@@ -380,7 +406,9 @@ export function EditPostPage() {
               <input
                 type="text"
                 value={resourceForm.name}
-                onChange={(e) => setResourceForm({ ...resourceForm, name: e.target.value })}
+                onChange={(e) =>
+                  setResourceForm({ ...resourceForm, name: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 required
               />
@@ -392,7 +420,12 @@ export function EditPostPage() {
               </label>
               <select
                 value={resourceForm.type}
-                onChange={(e) => setResourceForm({ ...resourceForm, type: e.target.value as 'library' | 'tool' | 'framework' })}
+                onChange={(e) =>
+                  setResourceForm({
+                    ...resourceForm,
+                    type: e.target.value as "library" | "tool" | "framework",
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="library">Library</option>
@@ -408,7 +441,12 @@ export function EditPostPage() {
               <input
                 type="url"
                 value={resourceForm.website_url}
-                onChange={(e) => setResourceForm({ ...resourceForm, website_url: e.target.value })}
+                onChange={(e) =>
+                  setResourceForm({
+                    ...resourceForm,
+                    website_url: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
@@ -420,7 +458,12 @@ export function EditPostPage() {
               <input
                 type="url"
                 value={resourceForm.github_url}
-                onChange={(e) => setResourceForm({ ...resourceForm, github_url: e.target.value })}
+                onChange={(e) =>
+                  setResourceForm({
+                    ...resourceForm,
+                    github_url: e.target.value,
+                  })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
@@ -435,17 +478,17 @@ export function EditPostPage() {
                     key={tech.id}
                     type="button"
                     onClick={() => {
-                      setResourceForm(prev => ({
+                      setResourceForm((prev) => ({
                         ...prev,
                         technologies: prev.technologies.includes(tech.id)
-                          ? prev.technologies.filter(id => id !== tech.id)
-                          : [...prev.technologies, tech.id]
+                          ? prev.technologies.filter((id) => id !== tech.id)
+                          : [...prev.technologies, tech.id],
                       }));
                     }}
                     className={`${tech.color} px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 ${
                       resourceForm.technologies.includes(tech.id)
-                        ? 'opacity-100'
-                        : 'opacity-60 hover:opacity-80'
+                        ? "opacity-100"
+                        : "opacity-60 hover:opacity-80"
                     }`}
                   >
                     {tech.name}
@@ -493,7 +536,9 @@ export function EditPostPage() {
               <input
                 type="text"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 required
               />
@@ -505,7 +550,9 @@ export function EditPostPage() {
               </label>
               <textarea
                 value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, content: e.target.value })
+                }
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 rows={4}
                 required
@@ -518,19 +565,21 @@ export function EditPostPage() {
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { type: 'article', label: 'Article', icon: BookOpen },
-                  { type: 'tutorial', label: 'Tutorial', icon: Code2 },
-                  { type: 'news', label: 'News', icon: Newspaper },
-                  { type: 'resource', label: 'Resource', icon: Library }
+                  { type: "article", label: "Article", icon: BookOpen },
+                  { type: "tutorial", label: "Tutorial", icon: Code2 },
+                  { type: "news", label: "News", icon: Newspaper },
+                  { type: "resource", label: "Resource", icon: Library },
                 ].map(({ type, label, icon: Icon }) => (
                   <button
                     key={type}
                     type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, type: type as any }))}
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, type: type as any }))
+                    }
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                       formData.type === type
-                        ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                        ? "bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -540,7 +589,7 @@ export function EditPostPage() {
               </div>
             </div>
 
-            {formData.type === 'resource' && (
+            {formData.type === "resource" && (
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -555,10 +604,15 @@ export function EditPostPage() {
                   </button>
                 </div>
                 <select
-                  value={formData.resource || ''}
-                  onChange={(e) => setFormData({ ...formData, resource: e.target.value || null })}
+                  value={formData.resource || ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      resource: e.target.value || null,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required={formData.type === 'resource'}
+                  required={formData.type === "resource"}
                 >
                   <option value="">Select Resource</option>
                   {resources.map((resource) => (
@@ -580,17 +634,17 @@ export function EditPostPage() {
                     key={tech.id}
                     type="button"
                     onClick={() => {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         technologies: prev.technologies.includes(tech.id)
-                          ? prev.technologies.filter(id => id !== tech.id)
-                          : [...prev.technologies, tech.id]
+                          ? prev.technologies.filter((id) => id !== tech.id)
+                          : [...prev.technologies, tech.id],
                       }));
                     }}
                     className={`${tech.color} px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 ${
                       formData.technologies.includes(tech.id)
-                        ? 'opacity-100'
-                        : 'opacity-60 hover:opacity-80'
+                        ? "opacity-100"
+                        : "opacity-60 hover:opacity-80"
                     }`}
                   >
                     {tech.name}
@@ -603,7 +657,9 @@ export function EditPostPage() {
           {/* Info Blocks */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Content Blocks</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Content Blocks
+              </h2>
               <button
                 type="button"
                 onClick={handleAddBlock}
@@ -623,7 +679,11 @@ export function EditPostPage() {
                     className="space-y-6"
                   >
                     {formData.info_blocks.map((block, index) => (
-                      <Draggable key={block.id} draggableId={block.id} index={index}>
+                      <Draggable
+                        key={block.id}
+                        draggableId={block.id}
+                        index={index}
+                      >
                         {(provided) => (
                           <div
                             ref={provided.innerRef}
@@ -644,18 +704,20 @@ export function EditPostPage() {
                                     type="text"
                                     value={block.title}
                                     onChange={(e) => {
-                                      setFormData(prev => ({
+                                      setFormData((prev) => ({
                                         ...prev,
-                                        info_blocks: prev.info_blocks.map(b =>
-                                          b.id === block.id
-                                            ? { ...b, title: e.target.value }
-                                            : b
-                                        )
+                                        info_blocks: prev.info_blocks.map(
+                                          (b) =>
+                                            b.id === block.id
+                                              ? { ...b, title: e.target.value }
+                                              : b,
+                                        ),
                                       }));
                                     }}
                                     placeholder="Block Title"
                                     className="text-lg font-medium bg-transparent border-none focus:outline-none text-gray-900 dark:text-white"
                                   />
+
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveBlock(block.id)}
@@ -669,13 +731,16 @@ export function EditPostPage() {
                                   type="text"
                                   value={block.description}
                                   onChange={(e) => {
-                                    setFormData(prev => ({
+                                    setFormData((prev) => ({
                                       ...prev,
-                                      info_blocks: prev.info_blocks.map(b =>
+                                      info_blocks: prev.info_blocks.map((b) =>
                                         b.id === block.id
-                                          ? { ...b, description: e.target.value }
-                                          : b
-                                      )
+                                          ? {
+                                              ...b,
+                                              description: e.target.value,
+                                            }
+                                          : b,
+                                      ),
                                     }));
                                   }}
                                   placeholder="Block Description (optional)"
@@ -684,25 +749,35 @@ export function EditPostPage() {
 
                                 <div className="space-y-4">
                                   {block.items.map((item, itemIndex) => (
-                                    <div key={item.id} className="flex items-start gap-2">
-                                      {item.type === 'text' ? (
+                                    <div
+                                      key={item.id}
+                                      className="flex items-start gap-2"
+                                    >
+                                      {item.type === "text" ? (
                                         <textarea
                                           value={item.content}
                                           onChange={(e) => {
-                                            setFormData(prev => ({
+                                            setFormData((prev) => ({
                                               ...prev,
-                                              info_blocks: prev.info_blocks.map(b =>
-                                                b.id === block.id
-                                                  ? {
-                                                      ...b,
-                                                      items: b.items.map((i, idx) =>
-                                                        idx === itemIndex
-                                                          ? { ...i, content: e.target.value }
-                                                          : i
-                                                      )
-                                                    }
-                                                  : b
-                                              )
+                                              info_blocks: prev.info_blocks.map(
+                                                (b) =>
+                                                  b.id === block.id
+                                                    ? {
+                                                        ...b,
+                                                        items: b.items.map(
+                                                          (i, idx) =>
+                                                            idx === itemIndex
+                                                              ? {
+                                                                  ...i,
+                                                                  content:
+                                                                    e.target
+                                                                      .value,
+                                                                }
+                                                              : i,
+                                                        ),
+                                                      }
+                                                    : b,
+                                              ),
                                             }));
                                           }}
                                           placeholder="Enter text content..."
@@ -714,35 +789,44 @@ export function EditPostPage() {
                                           type="text"
                                           value={item.content}
                                           onChange={(e) => {
-                                            setFormData(prev => ({
+                                            setFormData((prev) => ({
                                               ...prev,
-                                              info_blocks: prev.info_blocks.map(b =>
-                                                b.id === block.id
-                                                  ? {
-                                                      ...b,
-                                                      items: b.items.map((i, idx) =>
-                                                        idx === itemIndex
-                                                          ? { ...i, content: e.target.value }
-                                                          : i
-                                                      )
-                                                    }
-                                                  : b
-                                              )
+                                              info_blocks: prev.info_blocks.map(
+                                                (b) =>
+                                                  b.id === block.id
+                                                    ? {
+                                                        ...b,
+                                                        items: b.items.map(
+                                                          (i, idx) =>
+                                                            idx === itemIndex
+                                                              ? {
+                                                                  ...i,
+                                                                  content:
+                                                                    e.target
+                                                                      .value,
+                                                                }
+                                                              : i,
+                                                        ),
+                                                      }
+                                                    : b,
+                                              ),
                                             }));
                                           }}
                                           placeholder={
-                                            item.type === 'image'
-                                              ? 'Enter image URL...'
-                                              : item.type === 'link'
-                                              ? 'Enter link URL...'
-                                              : 'Enter code...'
+                                            item.type === "image"
+                                              ? "Enter image URL..."
+                                              : item.type === "link"
+                                                ? "Enter link URL..."
+                                                : "Enter code..."
                                           }
                                           className="flex-1 px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                                         />
                                       )}
                                       <button
                                         type="button"
-                                        onClick={() => handleRemoveItem(block.id, item.id)}
+                                        onClick={() =>
+                                          handleRemoveItem(block.id, item.id)
+                                        }
                                         className="p-2 text-red-600 hover:text-red-700 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/50"
                                       >
                                         <X className="w-4 h-4" />
@@ -754,7 +838,9 @@ export function EditPostPage() {
                                 <div className="flex gap-2">
                                   <button
                                     type="button"
-                                    onClick={() => handleAddItem(block.id, 'text')}
+                                    onClick={() =>
+                                      handleAddItem(block.id, "text")
+                                    }
                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500"
                                   >
                                     <Plus className="w-4 h-4" />
@@ -762,7 +848,9 @@ export function EditPostPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleAddItem(block.id, 'image')}
+                                    onClick={() =>
+                                      handleAddItem(block.id, "image")
+                                    }
                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500"
                                   >
                                     <Plus className="w-4 h-4" />
@@ -770,7 +858,9 @@ export function EditPostPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleAddItem(block.id, 'link')}
+                                    onClick={() =>
+                                      handleAddItem(block.id, "link")
+                                    }
                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500"
                                   >
                                     <Plus className="w-4 h-4" />
@@ -778,12 +868,13 @@ export function EditPostPage() {
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleAddItem(block.id, 'code')}
+                                    onClick={() =>
+                                      handleAddItem(block.id, "code")
+                                    }
                                     className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500"
                                   >
                                     <Plus className="w-4 h-4" />
-                                    Code
-                                 ```
+                                    Code ```
                                   </button>
                                 </div>
                               </div>
@@ -803,7 +894,7 @@ export function EditPostPage() {
           <div className="flex justify-end gap-4">
             <button
               type="button"
-              onClick={() => navigate('/feed')}
+              onClick={() => navigate("/feed")}
               className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
             >
               Cancel

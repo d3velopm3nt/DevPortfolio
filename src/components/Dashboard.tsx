@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Code2, 
-  Package, 
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Code2,
+  Package,
   Sparkles,
   AppWindow,
   Monitor,
   Layout,
-  Plus
-} from 'lucide-react';
-import { Technology, Platform } from '../types';
-import { techCategories } from '../data/techCategories';
-import { supabase } from '../lib/supabase';
-import { AddProjectModal } from './AddProjectModal';
+  Plus,
+} from "lucide-react";
+import { Technology, Platform } from "../types";
+import { techCategories } from "../data/techCategories";
+import { supabase } from "../lib/supabase";
+import { AddProjectModal } from "./AddProjectModal";
 
 interface DashboardStats {
   projectCount: number;
@@ -38,7 +38,7 @@ export function Dashboard() {
     applicationCount: 0,
     techCount: 0,
     platformCount: 0,
-    techStackCount: 0
+    techStackCount: 0,
   });
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [techStacks, setTechStacks] = useState<TechStack[]>([]);
@@ -51,14 +51,22 @@ export function Dashboard() {
   }, []);
 
   const fetchDashboardData = async () => {
+    if (!supabase) {
+      setError("Supabase client not initialized");
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Get user's projects
       const { data: projects, error: projectsError } = await supabase
-        .from('projects')
-        .select(`
+        .from("projects")
+        .select(
+          `
           id,
           project_technologies (
             technologies (*)
@@ -74,22 +82,23 @@ export function Dashboard() {
               )
             )
           )
-        `)
-        .eq('user_id', user.id);
+        `,
+        )
+        .eq("user_id", user.id);
 
       if (projectsError) throw projectsError;
 
       // Get applications count
       const { data: applications, error: appsError } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('user_id', user.id);
+        .from("applications")
+        .select("id")
+        .eq("user_id", user.id);
 
       if (appsError) throw appsError;
 
       // Extract unique technologies from projects
       const techMap = new Map<string, Technology>();
-      projects.forEach(project => {
+      projects.forEach((project) => {
         project.project_technologies.forEach((pt: any) => {
           const tech = pt.technologies;
           if (!techMap.has(tech.id)) {
@@ -100,7 +109,7 @@ export function Dashboard() {
 
       // Extract unique platforms from projects
       const platformMap = new Map<string, Platform>();
-      projects.forEach(project => {
+      projects.forEach((project) => {
         project.project_platforms.forEach((pp: any) => {
           const platform = pp.platform;
           if (!platformMap.has(platform.id)) {
@@ -111,20 +120,22 @@ export function Dashboard() {
 
       // Extract and count tech stacks from projects
       const techStackMap = new Map<string, TechStack>();
-      projects.forEach(project => {
+      projects.forEach((project) => {
         project.project_tech_stacks.forEach((pts: any) => {
           const stack = pts.tech_stack;
           if (!techStackMap.has(stack.id)) {
             techStackMap.set(stack.id, {
               ...stack,
-              technologies: stack.tech_stack_technologies.map((t: any) => t.technologies),
-              projectCount: 1
+              technologies: stack.tech_stack_technologies.map(
+                (t: any) => t.technologies,
+              ),
+              projectCount: 1,
             });
           } else {
             const existing = techStackMap.get(stack.id)!;
             techStackMap.set(stack.id, {
               ...existing,
-              projectCount: existing.projectCount + 1
+              projectCount: existing.projectCount + 1,
             });
           }
         });
@@ -135,15 +146,15 @@ export function Dashboard() {
         applicationCount: applications.length,
         techCount: techMap.size,
         platformCount: platformMap.size,
-        techStackCount: techStackMap.size
+        techStackCount: techStackMap.size,
       });
 
       setPlatforms(Array.from(platformMap.values()));
       setTechnologies(Array.from(techMap.values()));
       setTechStacks(Array.from(techStackMap.values()));
     } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError('Failed to load dashboard data');
+      console.error("Error fetching dashboard data:", err);
+      setError("Failed to load dashboard data");
     } finally {
       setIsLoading(false);
     }
@@ -151,13 +162,16 @@ export function Dashboard() {
 
   // Group technologies by category
   const techsByCategory = React.useMemo(() => {
-    const grouped = technologies.reduce((acc, tech) => {
-      if (!acc[tech.type]) {
-        acc[tech.type] = [];
-      }
-      acc[tech.type].push(tech);
-      return acc;
-    }, {} as Record<string, Technology[]>);
+    const grouped = technologies.reduce(
+      (acc, tech) => {
+        if (!acc[tech.type]) {
+          acc[tech.type] = [];
+        }
+        acc[tech.type].push(tech);
+        return acc;
+      },
+      {} as Record<string, Technology[]>,
+    );
     return grouped;
   }, [technologies]);
 
@@ -169,6 +183,7 @@ export function Dashboard() {
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-6">
               <Sparkles className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+
               <div className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 rounded-full text-sm font-medium">
                 Developer Dashboard
               </div>
@@ -177,7 +192,8 @@ export function Dashboard() {
               Your Development Portfolio
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-              A comprehensive view of your projects, applications, and technical expertise.
+              A comprehensive view of your projects, applications, and technical
+              expertise.
             </p>
             <div className="flex gap-4">
               <button
@@ -202,20 +218,54 @@ export function Dashboard() {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Total Projects', value: stats.projectCount, icon: Package, color: 'text-blue-600 dark:text-blue-400' },
-          { label: 'Applications', value: stats.applicationCount, icon: AppWindow, color: 'text-purple-600 dark:text-purple-400' },
-          { label: 'Technologies', value: stats.techCount, icon: Code2, color: 'text-green-600 dark:text-green-400' },
-          { label: 'Platforms', value: stats.platformCount, icon: Monitor, color: 'text-orange-600 dark:text-orange-400' },
-          { label: 'Tech Stacks', value: stats.techStackCount, icon: Layout, color: 'text-pink-600 dark:text-pink-400' }
+          {
+            label: "Total Projects",
+            value: stats.projectCount,
+            icon: Package,
+            color: "text-blue-600 dark:text-blue-400",
+          },
+          {
+            label: "Applications",
+            value: stats.applicationCount,
+            icon: AppWindow,
+            color: "text-purple-600 dark:text-purple-400",
+          },
+          {
+            label: "Technologies",
+            value: stats.techCount,
+            icon: Code2,
+            color: "text-green-600 dark:text-green-400",
+          },
+          {
+            label: "Platforms",
+            value: stats.platformCount,
+            icon: Monitor,
+            color: "text-orange-600 dark:text-orange-400",
+          },
+          {
+            label: "Tech Stacks",
+            value: stats.techStackCount,
+            icon: Layout,
+            color: "text-pink-600 dark:text-pink-400",
+          },
         ].map((stat) => (
-          <div key={`stat-${stat.label}`} className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm transition-colors">
+          <div
+            key={`stat-${stat.label}`}
+            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm transition-colors"
+          >
             <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-xl bg-gray-50 dark:bg-gray-700 ${stat.color}`}>
+              <div
+                className={`p-3 rounded-xl bg-gray-50 dark:bg-gray-700 ${stat.color}`}
+              >
                 <stat.icon className="w-6 h-6" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {stat.value}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {stat.label}
+                </div>
               </div>
             </div>
           </div>
@@ -252,13 +302,14 @@ export function Dashboard() {
                   {stack.name}
                 </h3>
                 <span className="px-2 py-0.5 text-xs bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full">
-                  {stack.projectCount} {stack.projectCount === 1 ? 'project' : 'projects'}
+                  {stack.projectCount}{" "}
+                  {stack.projectCount === 1 ? "project" : "projects"}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1 mb-3">
                 {stack.technologies.map((tech) => (
                   <div
-                    key={tech.id}
+                    key={tech?.id}
                     className={`${tech.color} inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs`}
                   >
                     {tech.icon && <tech.icon size={12} />}
@@ -316,7 +367,10 @@ export function Dashboard() {
         {techCategories.map((category) => {
           const categoryTechs = techsByCategory[category.id] || [];
           return (
-            <div key={`category-${category.id}`} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 transition-colors">
+            <div
+              key={`category-${category.id}`}
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 transition-colors"
+            >
               <div className="flex items-center gap-3 mb-6">
                 <div className={`p-2 rounded-lg ${category.color}`}>
                   <category.icon className="w-5 h-5" />

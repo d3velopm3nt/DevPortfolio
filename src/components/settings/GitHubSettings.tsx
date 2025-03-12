@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Github, Loader2, Check, X, User, Link as LinkIcon, MapPin, Calendar } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { useGitHubAuth } from '../../hooks/useGitHubAuth';
+import React, { useState, useEffect } from "react";
+import {
+  Github,
+  Loader2,
+  Check,
+  X,
+  User,
+  Link as LinkIcon,
+  MapPin,
+  Calendar,
+} from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
+import { useGitHubAuth } from "../../hooks/useGitHubAuth";
 
 interface GitHubUser {
   avatar_url: string;
@@ -19,15 +28,15 @@ interface GitHubUser {
 
 export function GitHubSettings() {
   const location = useLocation();
-  const { 
-    isConnected, 
-    isLoading, 
-    error: authError, 
-    username, 
+  const {
+    isConnected,
+    isLoading,
+    error: authError,
+    username,
     lastSyncedAt,
-    refresh 
+    refresh,
   } = useGitHubAuth();
-  
+
   const [error, setError] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [githubUser, setGithubUser] = useState<GitHubUser | null>(null);
@@ -37,41 +46,46 @@ export function GitHubSettings() {
     setError(null);
 
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session?.provider_token) {
         // Need to reconnect to GitHub
-        setError('Please reconnect your GitHub account to sync repositories');
+        setError("Please reconnect your GitHub account to sync repositories");
         return;
       }
 
       // Fetch repositories from GitHub using the provider_token
-      const response = await fetch('https://api.github.com/user/repos?per_page=100', {
-        headers: {
-          Authorization: `Bearer ${session.provider_token}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
-      });
+      const response = await fetch(
+        "https://api.github.com/user/repos?per_page=100",
+        {
+          headers: {
+            Authorization: `Bearer ${session.provider_token}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        },
+      );
 
       if (!response.ok) {
-        console.error('GitHub API Error:', await response.text());
-        throw new Error('Failed to fetch repositories');
+        console.error("GitHub API Error:", await response.text());
+        throw new Error("Failed to fetch repositories");
       }
 
       const repos = await response.json();
-      console.log('Fetched repositories:', repos);
+      console.log("Fetched repositories:", repos);
 
       // Delete existing repositories
       await supabase
-        .from('github_repositories')
+        .from("github_repositories")
         .delete()
-        .eq('user_id', session.user.id);
+        .eq("user_id", session.user.id);
 
       if (repos.length > 0) {
         // Insert new repositories
         const { error: insertError } = await supabase
-          .from('github_repositories')
+          .from("github_repositories")
           .insert(
             repos.map((repo: any) => ({
               user_id: session.user.id,
@@ -84,8 +98,8 @@ export function GitHubSettings() {
               stargazers_count: repo.stargazers_count,
               forks_count: repo.forks_count,
               topics: repo.topics || [],
-              is_private: repo.private
-            }))
+              is_private: repo.private,
+            })),
           );
 
         if (insertError) throw insertError;
@@ -93,16 +107,20 @@ export function GitHubSettings() {
 
       // Update last sync time
       const { error: updateError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ github_last_sync_at: new Date().toISOString() })
-        .eq('id', session.user.id);
+        .eq("id", session.user.id);
 
       if (updateError) throw updateError;
 
       await refresh(); // Refresh GitHub connection state after sync
     } catch (err) {
-      console.error('Error syncing repositories:', err);
-      setError(err instanceof Error ? err.message : 'Failed to sync GitHub repositories');
+      console.error("Error syncing repositories:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to sync GitHub repositories",
+      );
     } finally {
       setIsSyncing(false);
     }
@@ -110,80 +128,92 @@ export function GitHubSettings() {
 
   const handleConnect = async () => {
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { url }, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { url },
+        error,
+      } = await supabase.auth.signInWithOAuth({
+        provider: "github",
         options: {
-          scopes: 'repo read:user',
+          scopes: "repo read:user",
           redirectTo: `${window.location.origin}/auth/callback`,
           // queryParams: {
           //   state: JSON.stringify({ from: location.pathname })
           // }
-        }
+        },
       });
 
       if (error) throw error;
       if (url) window.location.href = url;
     } catch (err) {
-      console.error('Error connecting GitHub:', err);
-      setError('Failed to connect GitHub account');
+      console.error("Error connecting GitHub:", err);
+      setError("Failed to connect GitHub account");
     }
   };
 
   const handleDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to disconnect your GitHub account?')) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to disconnect your GitHub account?",
+      )
+    )
+      return;
 
     try {
-      if (!supabase) throw new Error('Supabase client not initialized');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!supabase) throw new Error("Supabase client not initialized");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           github_username: null,
           github_access_token: null,
           github_refresh_token: null,
           github_token_expires_at: null,
-          github_last_sync_at: null
+          github_last_sync_at: null,
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
       // Delete repositories
       await supabase
-        .from('github_repositories')
+        .from("github_repositories")
         .delete()
-        .eq('user_id', user.id);
+        .eq("user_id", user.id);
 
       await refresh();
     } catch (err) {
-      console.error('Error disconnecting GitHub:', err);
-      setError('Failed to disconnect GitHub account');
+      console.error("Error disconnecting GitHub:", err);
+      setError("Failed to disconnect GitHub account");
     }
   };
 
   useEffect(() => {
     const fetchGitHubUser = async () => {
       if (!isConnected || !supabase) return;
-      
+
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         if (!session?.provider_token) return;
 
-        const response = await fetch('https://api.github.com/user', {
+        const response = await fetch("https://api.github.com/user", {
           headers: {
             Authorization: `Bearer ${session.provider_token}`,
-            Accept: 'application/vnd.github.v3+json'
-          }
+            Accept: "application/vnd.github.v3+json",
+          },
         });
 
-        if (!response.ok) throw new Error('Failed to fetch GitHub user');
+        if (!response.ok) throw new Error("Failed to fetch GitHub user");
         const userData = await response.json();
         setGithubUser(userData);
       } catch (err) {
-        console.error('Error fetching GitHub user:', err);
+        console.error("Error fetching GitHub user:", err);
       }
     };
 
@@ -201,9 +231,12 @@ export function GitHubSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">GitHub Integration</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          GitHub Integration
+        </h2>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Connect your GitHub account to import repositories and keep them in sync
+          Connect your GitHub account to import repositories and keep them in
+          sync
         </p>
       </div>
 
@@ -217,8 +250,8 @@ export function GitHubSettings() {
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
             {githubUser?.avatar_url ? (
-              <img 
-                src={githubUser.avatar_url} 
+              <img
+                src={githubUser.avatar_url}
                 alt={`${githubUser.login}'s avatar`}
                 className="w-16 h-16 rounded-full"
               />
@@ -229,11 +262,7 @@ export function GitHubSettings() {
             )}
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">
-                {isConnected ? (
-                  <>Connected as @{username}</>
-                ) : (
-                  'GitHub Account'
-                )}
+                {isConnected ? <>Connected as @{username}</> : "GitHub Account"}
               </h3>
               {isConnected && (
                 <p className="text-sm text-green-600 dark:text-green-400">
@@ -308,8 +337,12 @@ export function GitHubSettings() {
                 {githubUser.blog && (
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <LinkIcon className="w-4 h-4" />
-                    <a 
-                      href={githubUser.blog.startsWith('http') ? githubUser.blog : `https://${githubUser.blog}`}
+                    <a
+                      href={
+                        githubUser.blog.startsWith("http")
+                          ? githubUser.blog
+                          : `https://${githubUser.blog}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-indigo-600 dark:hover:text-indigo-400"
@@ -321,7 +354,10 @@ export function GitHubSettings() {
                 {githubUser.created_at && (
                   <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                     <Calendar className="w-4 h-4" />
-                    <span>Joined {new Date(githubUser.created_at).toLocaleDateString()}</span>
+                    <span>
+                      Joined{" "}
+                      {new Date(githubUser.created_at).toLocaleDateString()}
+                    </span>
                   </div>
                 )}
               </div>
@@ -330,19 +366,25 @@ export function GitHubSettings() {
                   <div className="text-xl font-semibold text-gray-900 dark:text-white">
                     {githubUser.public_repos}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Repositories</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Repositories
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-semibold text-gray-900 dark:text-white">
                     {githubUser.followers}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Followers</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Followers
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-xl font-semibold text-gray-900 dark:text-white">
                     {githubUser.following}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Following</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Following
+                  </div>
                 </div>
               </div>
             </div>

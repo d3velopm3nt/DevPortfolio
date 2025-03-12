@@ -1,65 +1,75 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { Navigation } from './components/Navigation';
-import { Dashboard } from './components/Dashboard';
-import { TimelinePage } from './pages/TimelinePage';
-import { ApplicationsPage } from './pages/ApplicationsPage';
-import { ProjectsPage } from './pages/ProjectsPage';
-import { ProjectProfilePage } from './pages/ProjectProfilePage';
-import { TechnologyProfilePage } from './pages/TechnologyProfilePage';
-import { TechStackProfilePage } from './pages/TechStackProfilePage';
-import { SettingsPage } from './pages/SettingsPage';
-import { LandingPage } from './pages/LandingPage';
-import { AuthPage } from './pages/AuthPage';
-import { GitHubRepositoriesPage } from './pages/GitHubRepositoriesPage';
-import { RepositoryProfilePage } from './pages/RepositoryProfilePage';
-import { ThemeProvider } from './context/ThemeContext';
-import { useAuthStore } from './store/authStore';
-import { supabase, isSupabaseReady } from './lib/supabase';
-import { TechFeedPage } from './pages/TechFeedPage';
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
+import { Navigation } from "./components/Navigation";
+import { Dashboard } from "./components/Dashboard";
+import { TimelinePage } from "./pages/TimelinePage";
+import { ApplicationsPage } from "./pages/ApplicationsPage";
+import { ProjectsPage } from "./pages/ProjectsPage";
+import { ProjectProfilePage } from "./pages/ProjectProfilePage";
+import { TechnologyProfilePage } from "./pages/TechnologyProfilePage";
+import { TechStackProfilePage } from "./pages/TechStackProfilePage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { LandingPage } from "./pages/LandingPage";
+import { AuthPage } from "./pages/AuthPage";
+import { GitHubRepositoriesPage } from "./pages/GitHubRepositoriesPage";
+import { RepositoryProfilePage } from "./pages/RepositoryProfilePage";
+import { ThemeProvider } from "./context/ThemeContext";
+import { useAuthStore } from "./store/authStore";
+import { supabase, isSupabaseReady } from "./lib/supabase";
+import { TechFeedPage } from "./pages/TechFeedPage";
 
 // Auth callback handler component
 function AuthCallback() {
   const navigate = useNavigate();
-  const setUser = useAuthStore(state => state.setUser);
+  const setUser = useAuthStore((state) => state.setUser);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        if (!supabase) throw new Error('Supabase client not initialized');
+        if (!supabase) throw new Error("Supabase client not initialized");
         const response = await supabase?.auth.getSession();
-        if (!response) throw new Error('Supabase client not initialized');
-        
-        const { data: { session }, error } = response;
-        
+        if (!response) throw new Error("Supabase client not initialized");
+
+        const {
+          data: { session },
+          error,
+        } = response;
+
         if (error) throw error;
-        
+
         if (session) {
           setUser(session.user);
 
           // Store GitHub token if present
           if (session.provider_token) {
             const { error: updateError } = await supabase
-              .from('profiles')
+              .from("profiles")
               .update({
                 github_access_token: session.provider_token,
                 github_username: session.user.user_metadata.user_name,
-                github_last_sync_at: new Date().toISOString()
+                github_last_sync_at: new Date().toISOString(),
               })
-              .eq('id', session.user.id);
+              .eq("id", session.user.id);
 
             if (updateError) {
-              console.error('Error storing GitHub token:', updateError);
+              console.error("Error storing GitHub token:", updateError);
             }
           }
 
-          navigate('/dashboard', { replace: true });
+          navigate("/dashboard", { replace: true });
         } else {
-          navigate('/auth', { replace: true });
+          navigate("/auth", { replace: true });
         }
       } catch (err) {
-        console.error('Error handling auth callback:', err);
-        navigate('/auth', { replace: true });
+        console.error("Error handling auth callback:", err);
+        navigate("/auth", { replace: true });
       }
     };
 
@@ -82,25 +92,30 @@ function AuthCallback() {
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuthStore();
-  
+
   if (!isSupabaseReady) {
     return (
       <div className="min-h-screen flex items-center justify-center flex-col gap-4 p-4 text-center">
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Please click the "Connect to Supabase" button in the top right to set up your Supabase project.
+          Please click the "Connect to Supabase" button in the top right to set
+          up your Supabase project.
         </p>
       </div>
     );
   }
-  
+
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
-  
+
   if (!user) {
     return <Navigate to="/auth" />;
   }
-  
+
   return <>{children}</>;
 }
 
@@ -135,24 +150,30 @@ export default function App() {
           </div>
 
           <Navigation />
-          
+
           <main className="flex-1">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <Routes>
                 <Route path="/" element={<LandingPage />} />
+
                 <Route path="/auth/callback" element={<AuthCallback />} />
-                <Route 
-                  path="/auth" 
+
+                <Route
+                  path="/auth"
                   element={
-                    isSupabaseReady 
-                      ? <AuthPage /> 
-                      : <div className="min-h-[60vh] flex items-center justify-center">
-                          <p className="text-lg text-gray-600 dark:text-gray-300">
-                            Please click the "Connect to Supabase" button in the top right to set up your Supabase project.
-                          </p>
-                        </div>
-                  } 
+                    isSupabaseReady ? (
+                      <AuthPage />
+                    ) : (
+                      <div className="min-h-[60vh] flex items-center justify-center">
+                        <p className="text-lg text-gray-600 dark:text-gray-300">
+                          Please click the "Connect to Supabase" button in the
+                          top right to set up your Supabase project.
+                        </p>
+                      </div>
+                    )
+                  }
                 />
+
                 <Route
                   path="/dashboard"
                   element={
@@ -161,6 +182,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/applications"
                   element={
@@ -169,6 +191,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/applications/:id"
                   element={
@@ -177,6 +200,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/projects"
                   element={
@@ -185,6 +209,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/projects/:id"
                   element={
@@ -193,6 +218,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/github/repositories"
                   element={
@@ -201,6 +227,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/github/repositories/:id"
                   element={
@@ -209,6 +236,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/timeline"
                   element={
@@ -217,6 +245,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/technology/:techName"
                   element={
@@ -225,6 +254,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/settings/tech-stacks/new"
                   element={
@@ -233,6 +263,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/settings/tech-stacks/:id"
                   element={
@@ -241,6 +272,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/settings"
                   element={
@@ -249,6 +281,7 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 />
+
                 <Route
                   path="/feed"
                   element={

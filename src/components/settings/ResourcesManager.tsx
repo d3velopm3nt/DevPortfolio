@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Loader2, X, Check, Library, PenTool as Tool, Code2, Cloud, Plug } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
+  Check,
+  Library,
+  PenTool as Tool,
+  Code2,
+  Cloud,
+  Plug,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { supabase } from "../../lib/supabase";
 
 interface ResourceType {
   id: string;
@@ -37,19 +49,19 @@ export function ResourcesManager() {
   const [editingType, setEditingType] = useState<ResourceType | null>(null);
 
   const [resourceForm, setResourceForm] = useState({
-    name: '',
-    description: '',
-    type_id: '',
-    website_url: '',
-    github_url: '',
-    documentation_url: '',
-    technologies: [] as string[]
+    name: "",
+    description: "",
+    type_id: "",
+    website_url: "",
+    github_url: "",
+    documentation_url: "",
+    technologies: [] as string[],
   });
 
   const [typeForm, setTypeForm] = useState({
-    name: '',
-    description: '',
-    icon_name: 'library'
+    name: "",
+    description: "",
+    icon_name: "library",
   });
 
   useEffect(() => {
@@ -60,32 +72,35 @@ export function ResourcesManager() {
     try {
       const [resourcesResponse, typesResponse] = await Promise.all([
         supabase
-          .from('resources')
-          .select(`
+          .from("resources")
+          .select(
+            `
             *,
             type:resource_types(*),
             resource_technologies(
               technologies(*)
             )
-          `)
-          .order('name'),
-        supabase
-          .from('resource_types')
-          .select('*')
-          .order('name')
+          `,
+          )
+          .order("name"),
+        supabase.from("resource_types").select("*").order("name"),
       ]);
 
       if (resourcesResponse.error) throw resourcesResponse.error;
       if (typesResponse.error) throw typesResponse.error;
 
-      setResources(resourcesResponse.data.map(resource => ({
-        ...resource,
-        technologies: resource.resource_technologies.map((rt: any) => rt.technologies)
-      })));
+      setResources(
+        resourcesResponse.data.map((resource) => ({
+          ...resource,
+          technologies: resource.resource_technologies.map(
+            (rt: any) => rt.technologies,
+          ),
+        })),
+      );
       setResourceTypes(typesResponse.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load resources');
+      console.error("Error fetching data:", err);
+      setError("Failed to load resources");
     } finally {
       setIsLoading(false);
     }
@@ -103,18 +118,18 @@ export function ResourcesManager() {
         type_id: resourceForm.type_id,
         website_url: resourceForm.website_url,
         github_url: resourceForm.github_url,
-        documentation_url: resourceForm.documentation_url
+        documentation_url: resourceForm.documentation_url,
       };
 
       const { data: resource, error: resourceError } = editingResource
         ? await supabase
-            .from('resources')
+            .from("resources")
             .update(resourceData)
-            .eq('id', editingResource.id)
+            .eq("id", editingResource.id)
             .select()
             .single()
         : await supabase
-            .from('resources')
+            .from("resources")
             .insert([resourceData])
             .select()
             .single();
@@ -124,19 +139,19 @@ export function ResourcesManager() {
       // Update technologies
       if (editingResource) {
         await supabase
-          .from('resource_technologies')
+          .from("resource_technologies")
           .delete()
-          .eq('resource_id', editingResource.id);
+          .eq("resource_id", editingResource.id);
       }
 
       if (resourceForm.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('resource_technologies')
+          .from("resource_technologies")
           .insert(
-            resourceForm.technologies.map(techId => ({
+            resourceForm.technologies.map((techId) => ({
               resource_id: resource.id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
@@ -145,8 +160,8 @@ export function ResourcesManager() {
       await fetchData();
       handleCloseResourceModal();
     } catch (err) {
-      console.error('Error saving resource:', err);
-      setError('Failed to save resource');
+      console.error("Error saving resource:", err);
+      setError("Failed to save resource");
     } finally {
       setIsLoading(false);
     }
@@ -160,56 +175,60 @@ export function ResourcesManager() {
     try {
       const { error } = editingType
         ? await supabase
-            .from('resource_types')
+            .from("resource_types")
             .update(typeForm)
-            .eq('id', editingType.id)
-        : await supabase
-            .from('resource_types')
-            .insert([typeForm]);
+            .eq("id", editingType.id)
+        : await supabase.from("resource_types").insert([typeForm]);
 
       if (error) throw error;
 
       await fetchData();
       handleCloseTypeModal();
     } catch (err) {
-      console.error('Error saving resource type:', err);
-      setError('Failed to save resource type');
+      console.error("Error saving resource type:", err);
+      setError("Failed to save resource type");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDeleteResource = async (resource: Resource) => {
-    if (!window.confirm(`Are you sure you want to delete ${resource.name}?`)) return;
+    if (!window.confirm(`Are you sure you want to delete ${resource.name}?`))
+      return;
 
     try {
       const { error } = await supabase
-        .from('resources')
+        .from("resources")
         .delete()
-        .eq('id', resource.id);
+        .eq("id", resource.id);
 
       if (error) throw error;
       await fetchData();
     } catch (err) {
-      console.error('Error deleting resource:', err);
-      setError('Failed to delete resource');
+      console.error("Error deleting resource:", err);
+      setError("Failed to delete resource");
     }
   };
 
   const handleDeleteType = async (type: ResourceType) => {
-    if (!window.confirm(`Are you sure you want to delete ${type.name}? This will affect all resources of this type.`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${type.name}? This will affect all resources of this type.`,
+      )
+    )
+      return;
 
     try {
       const { error } = await supabase
-        .from('resource_types')
+        .from("resource_types")
         .delete()
-        .eq('id', type.id);
+        .eq("id", type.id);
 
       if (error) throw error;
       await fetchData();
     } catch (err) {
-      console.error('Error deleting resource type:', err);
-      setError('Failed to delete resource type');
+      console.error("Error deleting resource type:", err);
+      setError("Failed to delete resource type");
     }
   };
 
@@ -217,12 +236,12 @@ export function ResourcesManager() {
     setEditingResource(resource);
     setResourceForm({
       name: resource.name,
-      description: resource.description || '',
+      description: resource.description || "",
       type_id: resource.type_id,
-      website_url: resource.website_url || '',
-      github_url: resource.github_url || '',
-      documentation_url: resource.documentation_url || '',
-      technologies: resource.technologies.map(t => t.id)
+      website_url: resource.website_url || "",
+      github_url: resource.github_url || "",
+      documentation_url: resource.documentation_url || "",
+      technologies: resource.technologies.map((t) => t.id),
     });
     setIsAddModalOpen(true);
   };
@@ -231,8 +250,8 @@ export function ResourcesManager() {
     setEditingType(type);
     setTypeForm({
       name: type.name,
-      description: type.description || '',
-      icon_name: type.icon_name || 'library'
+      description: type.description || "",
+      icon_name: type.icon_name || "library",
     });
     setIsTypeModalOpen(true);
   };
@@ -241,13 +260,13 @@ export function ResourcesManager() {
     setIsAddModalOpen(false);
     setEditingResource(null);
     setResourceForm({
-      name: '',
-      description: '',
-      type_id: '',
-      website_url: '',
-      github_url: '',
-      documentation_url: '',
-      technologies: []
+      name: "",
+      description: "",
+      type_id: "",
+      website_url: "",
+      github_url: "",
+      documentation_url: "",
+      technologies: [],
     });
   };
 
@@ -255,23 +274,23 @@ export function ResourcesManager() {
     setIsTypeModalOpen(false);
     setEditingType(null);
     setTypeForm({
-      name: '',
-      description: '',
-      icon_name: 'library'
+      name: "",
+      description: "",
+      icon_name: "library",
     });
   };
 
   const getTypeIcon = (iconName: string) => {
     switch (iconName) {
-      case 'library':
+      case "library":
         return Library;
-      case 'tool':
+      case "tool":
         return Tool;
-      case 'code':
+      case "code":
         return Code2;
-      case 'cloud':
+      case "cloud":
         return Cloud;
-      case 'plug':
+      case "plug":
         return Plug;
       default:
         return Library;
@@ -292,7 +311,9 @@ export function ResourcesManager() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Resource Types</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Resource Types
+            </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Manage the types of resources available in your portfolio
             </p>
@@ -319,9 +340,13 @@ export function ResourcesManager() {
                     <TypeIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">{type.name}</h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      {type.name}
+                    </h3>
                     {type.description && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">{type.description}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {type.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -349,7 +374,9 @@ export function ResourcesManager() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Resources</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Resources
+            </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Manage libraries, tools, and other resources used in your projects
             </p>
@@ -469,7 +496,7 @@ export function ResourcesManager() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingType ? 'Edit Resource Type' : 'Add Resource Type'}
+                  {editingType ? "Edit Resource Type" : "Add Resource Type"}
                 </h2>
                 <button
                   onClick={handleCloseTypeModal}
@@ -487,7 +514,9 @@ export function ResourcesManager() {
                   <input
                     type="text"
                     value={typeForm.name}
-                    onChange={(e) => setTypeForm({ ...typeForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setTypeForm({ ...typeForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -499,7 +528,9 @@ export function ResourcesManager() {
                   </label>
                   <textarea
                     value={typeForm.description}
-                    onChange={(e) => setTypeForm({ ...typeForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setTypeForm({ ...typeForm, description: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     rows={3}
                   />
@@ -511,7 +542,9 @@ export function ResourcesManager() {
                   </label>
                   <select
                     value={typeForm.icon_name}
-                    onChange={(e) => setTypeForm({ ...typeForm, icon_name: e.target.value })}
+                    onChange={(e) =>
+                      setTypeForm({ ...typeForm, icon_name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="library">Library</option>
@@ -543,7 +576,7 @@ export function ResourcesManager() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        {editingType ? 'Update' : 'Create'}
+                        {editingType ? "Update" : "Create"}
                       </>
                     )}
                   </button>
@@ -561,7 +594,7 @@ export function ResourcesManager() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingResource ? 'Edit Resource' : 'Add Resource'}
+                  {editingResource ? "Edit Resource" : "Add Resource"}
                 </h2>
                 <button
                   onClick={handleCloseResourceModal}
@@ -579,7 +612,9 @@ export function ResourcesManager() {
                   <input
                     type="text"
                     value={resourceForm.name}
-                    onChange={(e) => setResourceForm({ ...resourceForm, name: e.target.value })}
+                    onChange={(e) =>
+                      setResourceForm({ ...resourceForm, name: e.target.value })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   />
@@ -591,7 +626,12 @@ export function ResourcesManager() {
                   </label>
                   <select
                     value={resourceForm.type_id}
-                    onChange={(e) => setResourceForm({ ...resourceForm, type_id: e.target.value })}
+                    onChange={(e) =>
+                      setResourceForm({
+                        ...resourceForm,
+                        type_id: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     required
                   >
@@ -610,7 +650,12 @@ export function ResourcesManager() {
                   </label>
                   <textarea
                     value={resourceForm.description}
-                    onChange={(e) => setResourceForm({ ...resourceForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setResourceForm({
+                        ...resourceForm,
+                        description: e.target.value,
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     rows={3}
                   />
@@ -624,7 +669,12 @@ export function ResourcesManager() {
                     <input
                       type="url"
                       value={resourceForm.website_url}
-                      onChange={(e) => setResourceForm({ ...resourceForm, website_url: e.target.value })}
+                      onChange={(e) =>
+                        setResourceForm({
+                          ...resourceForm,
+                          website_url: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -636,7 +686,12 @@ export function ResourcesManager() {
                     <input
                       type="url"
                       value={resourceForm.documentation_url}
-                      onChange={(e) => setResourceForm({ ...resourceForm, documentation_url: e.target.value })}
+                      onChange={(e) =>
+                        setResourceForm({
+                          ...resourceForm,
+                          documentation_url: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -648,7 +703,12 @@ export function ResourcesManager() {
                     <input
                       type="url"
                       value={resourceForm.github_url}
-                      onChange={(e) => setResourceForm({ ...resourceForm, github_url: e.target.value })}
+                      onChange={(e) =>
+                        setResourceForm({
+                          ...resourceForm,
+                          github_url: e.target.value,
+                        })
+                      }
                       className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -675,7 +735,7 @@ export function ResourcesManager() {
                     ) : (
                       <>
                         <Check className="w-4 h-4" />
-                        {editingResource ? 'Update' : 'Create'}
+                        {editingResource ? "Update" : "Create"}
                       </>
                     )}
                   </button>

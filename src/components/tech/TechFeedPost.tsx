@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { BookOpen, Code2, Newspaper, Library, ChevronDown, ChevronUp, Globe, Image as ImageIcon, Pencil } from 'lucide-react';
-import { Technology } from '../../types';
-import { useAuthStore } from '../../store/authStore';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  BookOpen,
+  Code2,
+  Newspaper,
+  Library,
+  ChevronDown,
+  ChevronUp,
+  Globe,
+  Image as ImageIcon,
+  Pencil,
+} from "lucide-react";
+import { Technology } from "../../types";
+import { useAuthStore } from "../../store/authStore";
 
 interface InfoItem {
   id: string;
-  type: 'text' | 'image' | 'link' | 'code';
+  type: "text" | "image" | "link" | "code";
   content: string;
   order_index: number;
 }
@@ -15,7 +25,7 @@ interface InfoBlock {
   id: string;
   title: string;
   description: string | null;
-  type: 'code' | 'image' | 'link' | 'text' | 'resource';
+  type: "code" | "image" | "link" | "text" | "resource";
   order_index: number;
   items: InfoItem[];
 }
@@ -25,7 +35,7 @@ interface TechFeedPostProps {
     id: string;
     title: string;
     content: string;
-    type: 'article' | 'tutorial' | 'news' | 'resource';
+    type: "article" | "tutorial" | "news" | "resource";
     created_at: string;
     user: {
       id: string;
@@ -51,13 +61,13 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
 
   const getPostIcon = (type: string) => {
     switch (type) {
-      case 'article':
+      case "article":
         return BookOpen;
-      case 'tutorial':
+      case "tutorial":
         return Code2;
-      case 'news':
+      case "news":
         return Newspaper;
-      case 'resource':
+      case "resource":
         return Library;
       default:
         return BookOpen;
@@ -66,13 +76,13 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
 
   const getBlockIcon = (type: string) => {
     switch (type) {
-      case 'code':
+      case "code":
         return Code2;
-      case 'image':
+      case "image":
         return ImageIcon;
-      case 'link':
+      case "link":
         return Globe;
-      case 'resource':
+      case "resource":
         return Library;
       default:
         return BookOpen;
@@ -103,7 +113,9 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
               <span className="font-medium text-gray-900 dark:text-white">
                 {post.user.username}
               </span>
-              <span className="text-sm text-gray-500 dark:text-gray-400">•</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                •
+              </span>
               <span className="text-sm text-gray-500 dark:text-gray-400">
                 {new Date(post.created_at).toLocaleDateString()}
               </span>
@@ -120,7 +132,7 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
         <div className="flex items-center gap-4">
           {/* Technologies - Desktop */}
           <div className="hidden md:flex flex-wrap gap-2">
-            {post.technologies.map(tech => (
+            {post.technologies.map((tech) => (
               <Link
                 key={tech.name}
                 to={`/technology/${encodeURIComponent(tech.name)}`}
@@ -142,7 +154,7 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
 
       {/* Technologies - Mobile */}
       <div className="flex md:hidden flex-wrap gap-2 mb-4">
-        {post.technologies.map(tech => (
+        {post.technologies.map((tech) => (
           <Link
             key={tech.name}
             to={`/technology/${encodeURIComponent(tech.name)}`}
@@ -157,15 +169,14 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
         {post.title}
       </h2>
 
-      <p className="text-gray-600 dark:text-gray-300 mb-4">
-        {post.content}
-      </p>
+      <p className="text-gray-600 dark:text-gray-300 mb-4">{post.content}</p>
 
       {/* Resource Card */}
       {post.resource && (
         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
           <div className="flex items-center gap-3 mb-2">
             <Library className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+
             <div>
               <h3 className="font-medium text-gray-900 dark:text-white">
                 {post.resource.name}
@@ -203,69 +214,78 @@ export function TechFeedPost({ post }: TechFeedPostProps) {
       {/* Info Blocks */}
       {post.info_blocks.length > 0 && (
         <div className="mt-6 space-y-6">
-          {post.info_blocks.slice(0, isExpanded ? undefined : 2).map((block) => {
-            const BlockIcon = getBlockIcon(block.type);
-            return (
-              <div key={block.id} className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <BlockIcon className="w-5 h-5 text-gray-500" />
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    {block.title}
-                  </h3>
-                </div>
-                {block.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {block.description}
-                  </p>
-                )}
-                <div className="space-y-3">
-                  {block.items.map((item) => {
-                    if (item.type === 'text') {
-                      return (
-                        <p key={item.id} className="text-gray-600 dark:text-gray-300">
-                          {item.content}
-                        </p>
-                      );
-                    }
-                    if (item.type === 'image') {
-                      return (
-                        <img
-                          key={item.id}
-                          src={item.content}
-                          alt=""
-                          className="rounded-lg max-w-full h-auto"
-                        />
-                      );
-                    }
-                    if (item.type === 'link') {
-                      return (
-                        <a
-                          key={item.id}
-                          href={item.content}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:underline"
-                        >
-                          <Globe className="w-4 h-4" />
-                          {item.content}
-                        </a>
-                      );
-                    }
-                    if (item.type === 'code') {
-                      return (
-                        <pre key={item.id} className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg overflow-x-auto">
-                          <code className="text-sm text-gray-800 dark:text-gray-200">
+          {post.info_blocks
+            .slice(0, isExpanded ? undefined : 2)
+            .map((block) => {
+              const BlockIcon = getBlockIcon(block.type);
+              return (
+                <div key={block.id} className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <BlockIcon className="w-5 h-5 text-gray-500" />
+
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      {block.title}
+                    </h3>
+                  </div>
+                  {block.description && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {block.description}
+                    </p>
+                  )}
+                  <div className="space-y-3">
+                    {block.items.map((item) => {
+                      if (item.type === "text") {
+                        return (
+                          <p
+                            key={item.id}
+                            className="text-gray-600 dark:text-gray-300"
+                          >
                             {item.content}
-                          </code>
-                        </pre>
-                      );
-                    }
-                    return null;
-                  })}
+                          </p>
+                        );
+                      }
+                      if (item.type === "image") {
+                        return (
+                          <img
+                            key={item.id}
+                            src={item.content}
+                            alt=""
+                            className="rounded-lg max-w-full h-auto"
+                          />
+                        );
+                      }
+                      if (item.type === "link") {
+                        return (
+                          <a
+                            key={item.id}
+                            href={item.content}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:underline"
+                          >
+                            <Globe className="w-4 h-4" />
+                            {item.content}
+                          </a>
+                        );
+                      }
+                      if (item.type === "code") {
+                        return (
+                          <pre
+                            key={item.id}
+                            className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg overflow-x-auto"
+                          >
+                            <code className="text-sm text-gray-800 dark:text-gray-200">
+                              {item.content}
+                            </code>
+                          </pre>
+                        );
+                      }
+                      return null;
+                    })}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
           {post.info_blocks.length > 2 && (
             <button

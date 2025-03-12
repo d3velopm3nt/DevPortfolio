@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { X, Loader2, Check, Library, PenTool as Tool, Code2 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { Technology } from '../../types';
+import React, { useState, useEffect } from "react";
+import {
+  X,
+  Loader2,
+  Check,
+  Library,
+  PenTool as Tool,
+  Code2,
+} from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { Technology } from "../../types";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -12,18 +19,22 @@ interface CreatePostModalProps {
 interface Resource {
   id: string;
   name: string;
-  type: 'library' | 'tool' | 'framework';
+  type: "library" | "tool" | "framework";
   website_url: string;
   github_url: string;
 }
 
-export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostModalProps) {
+export function CreatePostModal({
+  isOpen,
+  onClose,
+  onPostCreated,
+}: CreatePostModalProps) {
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    type: 'article' as const,
+    title: "",
+    content: "",
+    type: "article" as const,
     technologies: [] as string[],
-    resource: null as string | null
+    resource: null as string | null,
   });
   const [technologies, setTechnologies] = useState<Technology[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
@@ -31,11 +42,11 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
   const [error, setError] = useState<string | null>(null);
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [resourceForm, setResourceForm] = useState({
-    name: '',
-    type: 'library' as const,
-    website_url: '',
-    github_url: '',
-    technologies: [] as string[]
+    name: "",
+    type: "library" as const,
+    website_url: "",
+    github_url: "",
+    technologies: [] as string[],
   });
 
   useEffect(() => {
@@ -48,28 +59,28 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
   const fetchTechnologies = async () => {
     try {
       const { data, error } = await supabase
-        .from('technologies')
-        .select('*')
-        .order('name');
+        .from("technologies")
+        .select("*")
+        .order("name");
 
       if (error) throw error;
       setTechnologies(data);
     } catch (err) {
-      console.error('Error fetching technologies:', err);
+      console.error("Error fetching technologies:", err);
     }
   };
 
   const fetchResources = async () => {
     try {
       const { data, error } = await supabase
-        .from('resources')
-        .select('*')
-        .order('name');
+        .from("resources")
+        .select("*")
+        .order("name");
 
       if (error) throw error;
       setResources(data);
     } catch (err) {
-      console.error('Error fetching resources:', err);
+      console.error("Error fetching resources:", err);
     }
   };
 
@@ -79,19 +90,23 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
     setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       // Create post
       const { data: post, error: postError } = await supabase
-        .from('tech_feed_posts')
-        .insert([{
-          user_id: user.id,
-          title: formData.title,
-          content: formData.content,
-          type: formData.type,
-          resource_id: formData.resource
-        }])
+        .from("tech_feed_posts")
+        .insert([
+          {
+            user_id: user.id,
+            title: formData.title,
+            content: formData.content,
+            type: formData.type,
+            resource_id: formData.resource,
+          },
+        ])
         .select()
         .single();
 
@@ -100,12 +115,12 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
       // Add technologies
       if (formData.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('tech_feed_post_technologies')
+          .from("tech_feed_post_technologies")
           .insert(
-            formData.technologies.map(techId => ({
+            formData.technologies.map((techId) => ({
               post_id: post.id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
@@ -114,8 +129,8 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
       onPostCreated();
       onClose();
     } catch (err) {
-      console.error('Error creating post:', err);
-      setError('Failed to create post');
+      console.error("Error creating post:", err);
+      setError("Failed to create post");
     } finally {
       setIsLoading(false);
     }
@@ -129,13 +144,15 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
     try {
       // Create resource
       const { data: resource, error: resourceError } = await supabase
-        .from('resources')
-        .insert([{
-          name: resourceForm.name,
-          type: resourceForm.type,
-          website_url: resourceForm.website_url,
-          github_url: resourceForm.github_url
-        }])
+        .from("resources")
+        .insert([
+          {
+            name: resourceForm.name,
+            type: resourceForm.type,
+            website_url: resourceForm.website_url,
+            github_url: resourceForm.github_url,
+          },
+        ])
         .select()
         .single();
 
@@ -144,23 +161,23 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
       // Add technologies
       if (resourceForm.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('resource_technologies')
+          .from("resource_technologies")
           .insert(
-            resourceForm.technologies.map(techId => ({
+            resourceForm.technologies.map((techId) => ({
               resource_id: resource.id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
       }
 
       await fetchResources();
-      setFormData(prev => ({ ...prev, resource: resource.id }));
+      setFormData((prev) => ({ ...prev, resource: resource.id }));
       setIsAddingResource(false);
     } catch (err) {
-      console.error('Error creating resource:', err);
-      setError('Failed to create resource');
+      console.error("Error creating resource:", err);
+      setError("Failed to create resource");
     } finally {
       setIsLoading(false);
     }
@@ -199,7 +216,9 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 <input
                   type="text"
                   value={resourceForm.name}
-                  onChange={(e) => setResourceForm({ ...resourceForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setResourceForm({ ...resourceForm, name: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
@@ -211,7 +230,12 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 </label>
                 <select
                   value={resourceForm.type}
-                  onChange={(e) => setResourceForm({ ...resourceForm, type: e.target.value as 'library' | 'tool' | 'framework' })}
+                  onChange={(e) =>
+                    setResourceForm({
+                      ...resourceForm,
+                      type: e.target.value as "library" | "tool" | "framework",
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="library">Library</option>
@@ -227,7 +251,12 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 <input
                   type="url"
                   value={resourceForm.website_url}
-                  onChange={(e) => setResourceForm({ ...resourceForm, website_url: e.target.value })}
+                  onChange={(e) =>
+                    setResourceForm({
+                      ...resourceForm,
+                      website_url: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -239,7 +268,12 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 <input
                   type="url"
                   value={resourceForm.github_url}
-                  onChange={(e) => setResourceForm({ ...resourceForm, github_url: e.target.value })}
+                  onChange={(e) =>
+                    setResourceForm({
+                      ...resourceForm,
+                      github_url: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -254,17 +288,17 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                       key={tech.id}
                       type="button"
                       onClick={() => {
-                        setResourceForm(prev => ({
+                        setResourceForm((prev) => ({
                           ...prev,
                           technologies: prev.technologies.includes(tech.id)
-                            ? prev.technologies.filter(id => id !== tech.id)
-                            : [...prev.technologies, tech.id]
+                            ? prev.technologies.filter((id) => id !== tech.id)
+                            : [...prev.technologies, tech.id],
                         }));
                       }}
                       className={`${tech.color} px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 ${
                         resourceForm.technologies.includes(tech.id)
-                          ? 'opacity-100'
-                          : 'opacity-60 hover:opacity-80'
+                          ? "opacity-100"
+                          : "opacity-60 hover:opacity-80"
                       }`}
                     >
                       {tech.name}
@@ -309,7 +343,9 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
@@ -321,7 +357,9 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 </label>
                 <textarea
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, content: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   rows={4}
                   required
@@ -334,7 +372,16 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'article' | 'tutorial' | 'news' | 'resource' })}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      type: e.target.value as
+                        | "article"
+                        | "tutorial"
+                        | "news"
+                        | "resource",
+                    })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="article">Article</option>
@@ -344,7 +391,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                 </select>
               </div>
 
-              {formData.type === 'resource' && (
+              {formData.type === "resource" && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -359,10 +406,15 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                     </button>
                   </div>
                   <select
-                    value={formData.resource || ''}
-                    onChange={(e) => setFormData({ ...formData, resource: e.target.value || null })}
+                    value={formData.resource || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        resource: e.target.value || null,
+                      })
+                    }
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required={formData.type === 'resource'}
+                    required={formData.type === "resource"}
                   >
                     <option value="">Select Resource</option>
                     {resources.map((resource) => (
@@ -384,17 +436,17 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
                       key={tech.id}
                       type="button"
                       onClick={() => {
-                        setFormData(prev => ({
+                        setFormData((prev) => ({
                           ...prev,
                           technologies: prev.technologies.includes(tech.id)
-                            ? prev.technologies.filter(id => id !== tech.id)
-                            : [...prev.technologies, tech.id]
+                            ? prev.technologies.filter((id) => id !== tech.id)
+                            : [...prev.technologies, tech.id],
                         }));
                       }}
                       className={`${tech.color} px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 ${
                         formData.technologies.includes(tech.id)
-                          ? 'opacity-100'
-                          : 'opacity-60 hover:opacity-80'
+                          ? "opacity-100"
+                          : "opacity-60 hover:opacity-80"
                       }`}
                     >
                       {tech.name}

@@ -1,49 +1,69 @@
-import React, { useState } from 'react';
-import { ExternalLink, Github, Code2, Layout, Server, Database, Lock, BarChart2, GitBranch, TestTube2, AppWindow, ChevronDown, ChevronUp } from 'lucide-react';
-import { Project } from '../types';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import {
+  ExternalLink,
+  Github,
+  Code2,
+  Layout,
+  Server,
+  Database,
+  Lock,
+  BarChart2,
+  GitBranch,
+  TestTube2,
+  AppWindow,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { Project } from "../types";
+import { Link, useNavigate } from "react-router-dom";
 
 interface ProjectCardProps {
   project: Project;
   showViewMore?: boolean;
 }
 
-export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  showViewMore = true,
+}: ProjectCardProps) {
   const navigate = useNavigate();
   const [showFullStack, setShowFullStack] = useState(false);
-  
+
   // Group technologies by type, safely handling null/undefined values
   const techsByType = React.useMemo(() => {
-    const grouped = project.technologies.reduce((acc, tech) => {
-      if (tech && tech.type) {
-        if (!acc[tech.type]) {
-          acc[tech.type] = [];
+    const grouped = project.technologies.reduce(
+      (acc, tech) => {
+        if (tech && tech.type) {
+          if (!acc[tech.type]) {
+            acc[tech.type] = [];
+          }
+          acc[tech.type].push(tech);
         }
-        acc[tech.type].push(tech);
-      }
-      return acc;
-    }, {} as Record<string, typeof project.technologies>);
+        return acc;
+      },
+      {} as Record<string, typeof project.technologies>,
+    );
     return grouped;
   }, [project.technologies]);
 
   // Get icon for tech type
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'language':
+      case "language":
         return Code2;
-      case 'frontend':
+      case "frontend":
         return Layout;
-      case 'backend':
+      case "backend":
         return Server;
-      case 'database':
+      case "database":
         return Database;
-      case 'auth':
+      case "auth":
         return Lock;
-      case 'visualization':
+      case "visualization":
         return BarChart2;
-      case 'deployment':
+      case "deployment":
         return GitBranch;
-      case 'testing':
+      case "testing":
         return TestTube2;
       default:
         return Code2;
@@ -59,8 +79,8 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden transition-transform hover:scale-[1.02]">
       {project.image_url && (
-        <img 
-          src={project.image_url} 
+        <img
+          src={project.image_url}
           alt={project.title}
           className="w-full h-48 object-cover"
         />
@@ -68,7 +88,9 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{project.title}</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              {project.title}
+            </h3>
             {project.application && (
               <Link
                 to={`/applications/${project.application.id}`}
@@ -79,7 +101,9 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
                 {project.application.name}
               </Link>
             )}
-            <p className="text-gray-600 dark:text-gray-300 mb-4">{project.description}</p>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              {project.description}
+            </p>
           </div>
           <div className="flex gap-2">
             {project.github_url && (
@@ -111,15 +135,18 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
         {!showFullStack && (
           <div className="mb-4">
             <div className="flex flex-wrap gap-2">
-              {project.technologies.map((tech) => tech && (
-                <button
-                  key={tech.name}
-                  onClick={(e) => handleTechClick(e, tech.name)}
-                  className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
-                >
-                  {tech.name}
-                </button>
-              ))}
+              {project.technologies.map(
+                (tech) =>
+                  tech && (
+                    <button
+                      key={tech.name}
+                      onClick={(e) => handleTechClick(e, tech.name)}
+                      className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
+                    >
+                      {tech.name}
+                    </button>
+                  ),
+              )}
             </div>
           </div>
         )}
@@ -134,15 +161,18 @@ export function ProjectCard({ project, showViewMore = true }: ProjectCardProps) 
                   <span className="capitalize">{type}</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {techs.map((tech) => tech && (
-                    <button
-                      key={tech.name}
-                      onClick={(e) => handleTechClick(e, tech.name)}
-                      className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
-                    >
-                      {tech.name}
-                    </button>
-                  ))}
+                  {techs.map(
+                    (tech) =>
+                      tech && (
+                        <button
+                          key={tech.name}
+                          onClick={(e) => handleTechClick(e, tech.name)}
+                          className={`${tech.color} px-2 py-1 rounded-full text-sm hover:opacity-80 transition-opacity cursor-pointer`}
+                        >
+                          {tech.name}
+                        </button>
+                      ),
+                  )}
                 </div>
               </div>
             ))}

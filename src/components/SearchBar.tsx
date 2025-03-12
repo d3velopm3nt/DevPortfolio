@@ -1,6 +1,6 @@
-import React from 'react';
-import { Search, X } from 'lucide-react';
-import { Technology } from '../types';
+import React from "react";
+import { Search, X } from "lucide-react";
+import { Technology } from "../types";
 
 interface SearchBarProps {
   searchTerm: string;
@@ -10,17 +10,21 @@ interface SearchBarProps {
   availableTechs: Technology[];
 }
 
-export function SearchBar({ 
-  searchTerm, 
-  onSearchChange, 
+export function SearchBar({
+  searchTerm,
+  onSearchChange,
   selectedTechs,
   onTechToggle,
-  availableTechs 
+  availableTechs,
 }: SearchBarProps) {
   return (
     <div className="space-y-4 mb-8">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Search
+          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+          size={20}
+        />
+
         <input
           type="text"
           placeholder="Search projects..."
@@ -52,7 +56,10 @@ export function SearchBar({
       <div className="flex flex-wrap gap-2">
         <span className="text-sm text-gray-600 py-1">Add filters:</span>
         {availableTechs
-          .filter(tech => !selectedTechs.some(selected => selected.name === tech.name))
+          .filter(
+            (tech) =>
+              !selectedTechs.some((selected) => selected.name === tech.name),
+          )
           .map((tech) => (
             <button
               key={tech.name}

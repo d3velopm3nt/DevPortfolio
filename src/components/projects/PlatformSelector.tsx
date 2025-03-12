@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Loader2, Plus, X, Monitor, Smartphone, Watch, Tv, Cpu } from 'lucide-react';
-import { Platform, OperatingSystem, ProjectPlatform } from '../../types';
-import { supabase } from '../../lib/supabase';
+import React, { useState, useEffect } from "react";
+import {
+  Loader2,
+  Plus,
+  X,
+  Monitor,
+  Smartphone,
+  Watch,
+  Tv,
+  Cpu,
+} from "lucide-react";
+import { Platform, OperatingSystem, ProjectPlatform } from "../../types";
+import { supabase } from "../../lib/supabase";
 
 interface PlatformSelectorProps {
   projectId: string | null; // Changed to allow null
@@ -9,12 +18,20 @@ interface PlatformSelectorProps {
   onPlatformsChange: (platforms: ProjectPlatform[]) => void;
 }
 
-export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChange }: PlatformSelectorProps) {
+export function PlatformSelector({
+  projectId,
+  selectedPlatforms,
+  onPlatformsChange,
+}: PlatformSelectorProps) {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
-  const [operatingSystems, setOperatingSystems] = useState<OperatingSystem[]>([]);
+  const [operatingSystems, setOperatingSystems] = useState<OperatingSystem[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(null);
+  const [selectedPlatformId, setSelectedPlatformId] = useState<string | null>(
+    null,
+  );
   const [selectedOSId, setSelectedOSId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,8 +41,8 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
   const fetchPlatformsAndOS = async () => {
     try {
       const [platformsResponse, osResponse] = await Promise.all([
-        supabase.from('platforms').select('*').order('name'),
-        supabase.from('operating_systems').select('*').order('name')
+        supabase.from("platforms").select("*").order("name"),
+        supabase.from("operating_systems").select("*").order("name"),
       ]);
 
       if (platformsResponse.error) throw platformsResponse.error;
@@ -34,8 +51,8 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
       setPlatforms(platformsResponse.data);
       setOperatingSystems(osResponse.data);
     } catch (err) {
-      console.error('Error fetching platforms and OS:', err);
-      setError('Failed to load platforms and operating systems');
+      console.error("Error fetching platforms and OS:", err);
+      setError("Failed to load platforms and operating systems");
     } finally {
       setIsLoading(false);
     }
@@ -44,19 +61,19 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
   const handleAddPlatform = () => {
     if (!selectedPlatformId || !selectedOSId) return;
 
-    const platform = platforms.find(p => p.id === selectedPlatformId);
-    const os = operatingSystems.find(o => o.id === selectedOSId);
+    const platform = platforms.find((p) => p.id === selectedPlatformId);
+    const os = operatingSystems.find((o) => o.id === selectedOSId);
 
     if (!platform || !os) return;
 
     // Create a new platform object without making an API call
     const newPlatform: ProjectPlatform = {
       id: crypto.randomUUID(), // Generate a temporary ID
-      project_id: projectId || '',
+      project_id: projectId || "",
       platform_id: selectedPlatformId,
       operating_system_id: selectedOSId,
       platform,
-      operating_system: os
+      operating_system: os,
     };
 
     onPlatformsChange([...selectedPlatforms, newPlatform]);
@@ -65,20 +82,20 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
   };
 
   const handleRemovePlatform = (platformId: string) => {
-    onPlatformsChange(selectedPlatforms.filter(p => p.id !== platformId));
+    onPlatformsChange(selectedPlatforms.filter((p) => p.id !== platformId));
   };
 
   const getPlatformIcon = (platformName: string) => {
     switch (platformName.toLowerCase()) {
-      case 'desktop':
+      case "desktop":
         return Monitor;
-      case 'mobile':
+      case "mobile":
         return Smartphone;
-      case 'watch':
+      case "watch":
         return Watch;
-      case 'tv':
+      case "tv":
         return Tv;
-      case 'iot':
+      case "iot":
         return Cpu;
       default:
         return Monitor;
@@ -112,7 +129,9 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
             >
               <PlatformIcon className="w-4 h-4" />
               <span>
-                {projectPlatform.platform.name} - {projectPlatform.operating_system.name} {projectPlatform.operating_system.version}
+                {projectPlatform.platform.name} -{" "}
+                {projectPlatform.operating_system.name}{" "}
+                {projectPlatform.operating_system.version}
               </span>
               <button
                 onClick={() => handleRemovePlatform(projectPlatform.id)}
@@ -132,7 +151,7 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
             Platform
           </label>
           <select
-            value={selectedPlatformId || ''}
+            value={selectedPlatformId || ""}
             onChange={(e) => {
               setSelectedPlatformId(e.target.value || null);
               setSelectedOSId(null);
@@ -153,14 +172,14 @@ export function PlatformSelector({ projectId, selectedPlatforms, onPlatformsChan
             Operating System
           </label>
           <select
-            value={selectedOSId || ''}
+            value={selectedOSId || ""}
             onChange={(e) => setSelectedOSId(e.target.value || null)}
             disabled={!selectedPlatformId}
             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
           >
             <option value="">Select OS</option>
             {operatingSystems
-              .filter(os => os.platform_id === selectedPlatformId)
+              .filter((os) => os.platform_id === selectedPlatformId)
               .map((os) => (
                 <option key={os.id} value={os.id}>
                   {os.name} {os.version}

@@ -1,9 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Code2, Layout, Plus, X, Loader2, Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { Technology } from '../types';
-import { techCategories } from '../data/techCategories';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Code2,
+  Layout,
+  Plus,
+  X,
+  Loader2,
+  Check,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { Technology } from "../types";
+import { techCategories } from "../data/techCategories";
 
 interface TechStack {
   id: string;
@@ -22,10 +30,10 @@ export function TechStackProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    category: 'Web',
-    technologies: [] as string[]
+    name: "",
+    description: "",
+    category: "Web",
+    technologies: [] as string[],
   });
 
   useEffect(() => {
@@ -35,20 +43,21 @@ export function TechStackProfilePage() {
   const fetchData = async () => {
     try {
       const [techStackResponse, technologiesResponse] = await Promise.all([
-        id ? supabase
-          .from('tech_stacks')
-          .select(`
+        id
+          ? supabase
+              .from("tech_stacks")
+              .select(
+                `
             *,
             tech_stack_technologies (
               technologies (*)
             )
-          `)
-          .eq('id', id)
-          .single() : null,
-        supabase
-          .from('technologies')
-          .select('*')
-          .order('name')
+          `,
+              )
+              .eq("id", id)
+              .single()
+          : null,
+        supabase.from("technologies").select("*").order("name"),
       ]);
 
       if (techStackResponse?.error) throw techStackResponse.error;
@@ -57,21 +66,23 @@ export function TechStackProfilePage() {
       if (techStackResponse?.data) {
         const stack = {
           ...techStackResponse.data,
-          technologies: techStackResponse.data.tech_stack_technologies.map((t: any) => t.technologies)
+          technologies: techStackResponse.data.tech_stack_technologies.map(
+            (t: any) => t.technologies,
+          ),
         };
         setTechStack(stack);
         setFormData({
           name: stack.name,
-          description: stack.description || '',
+          description: stack.description || "",
           category: stack.category,
-          technologies: stack.technologies.map(t => t.id)
+          technologies: stack.technologies.map((t) => t.id),
         });
       }
 
       setTechnologies(technologiesResponse.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load tech stack');
+      console.error("Error fetching data:", err);
+      setError("Failed to load tech stack");
     } finally {
       setIsLoading(false);
     }
@@ -86,22 +97,24 @@ export function TechStackProfilePage() {
       // Create or update tech stack
       const { data: stack, error: stackError } = id
         ? await supabase
-            .from('tech_stacks')
+            .from("tech_stacks")
             .update({
               name: formData.name,
               description: formData.description,
-              category: formData.category
+              category: formData.category,
             })
-            .eq('id', id)
+            .eq("id", id)
             .select()
             .single()
         : await supabase
-            .from('tech_stacks')
-            .insert([{
-              name: formData.name,
-              description: formData.description,
-              category: formData.category
-            }])
+            .from("tech_stacks")
+            .insert([
+              {
+                name: formData.name,
+                description: formData.description,
+                category: formData.category,
+              },
+            ])
             .select()
             .single();
 
@@ -110,28 +123,28 @@ export function TechStackProfilePage() {
       // Update technologies
       if (id) {
         await supabase
-          .from('tech_stack_technologies')
+          .from("tech_stack_technologies")
           .delete()
-          .eq('tech_stack_id', id);
+          .eq("tech_stack_id", id);
       }
 
       if (formData.technologies.length > 0) {
         const { error: techError } = await supabase
-          .from('tech_stack_technologies')
+          .from("tech_stack_technologies")
           .insert(
-            formData.technologies.map(techId => ({
+            formData.technologies.map((techId) => ({
               tech_stack_id: stack.id,
-              technology_id: techId
-            }))
+              technology_id: techId,
+            })),
           );
 
         if (techError) throw techError;
       }
 
-      navigate('/settings');
+      navigate("/settings");
     } catch (err) {
-      console.error('Error saving tech stack:', err);
-      setError('Failed to save tech stack');
+      console.error("Error saving tech stack:", err);
+      setError("Failed to save tech stack");
     } finally {
       setIsSaving(false);
     }
@@ -150,7 +163,7 @@ export function TechStackProfilePage() {
       {/* Header */}
       <div>
         <button
-          onClick={() => navigate('/settings')}
+          onClick={() => navigate("/settings")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6"
         >
           <ArrowLeft className="w-5 h-5" />
@@ -162,7 +175,7 @@ export function TechStackProfilePage() {
             <Layout className="w-6 h-6" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {id ? 'Edit Tech Stack' : 'Create Tech Stack'}
+            {id ? "Edit Tech Stack" : "Create Tech Stack"}
           </h1>
         </div>
       </div>
@@ -185,7 +198,9 @@ export function TechStackProfilePage() {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   required
                 />
@@ -197,7 +212,9 @@ export function TechStackProfilePage() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   rows={4}
                 />
@@ -209,10 +226,19 @@ export function TechStackProfilePage() {
                 </label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  {['Web', 'Mobile', 'Desktop', 'Backend', 'Data', 'DevOps'].map((category) => (
+                  {[
+                    "Web",
+                    "Mobile",
+                    "Desktop",
+                    "Backend",
+                    "Data",
+                    "DevOps",
+                  ].map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -228,7 +254,9 @@ export function TechStackProfilePage() {
               </h2>
               <div className="space-y-6">
                 {techCategories.map((category) => {
-                  const categoryTechs = technologies.filter(t => t.type === category.id);
+                  const categoryTechs = technologies.filter(
+                    (t) => t.type === category.id,
+                  );
                   return (
                     <div key={category.id} className="space-y-3">
                       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -241,17 +269,21 @@ export function TechStackProfilePage() {
                             key={tech.id}
                             type="button"
                             onClick={() => {
-                              setFormData(prev => ({
+                              setFormData((prev) => ({
                                 ...prev,
-                                technologies: prev.technologies.includes(tech.id)
-                                  ? prev.technologies.filter(id => id !== tech.id)
-                                  : [...prev.technologies, tech.id]
+                                technologies: prev.technologies.includes(
+                                  tech.id,
+                                )
+                                  ? prev.technologies.filter(
+                                      (id) => id !== tech.id,
+                                    )
+                                  : [...prev.technologies, tech.id],
                               }));
                             }}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
                               formData.technologies.includes(tech.id)
                                 ? tech.color
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                             }`}
                           >
                             {formData.technologies.includes(tech.id) ? (
@@ -278,7 +310,7 @@ export function TechStackProfilePage() {
               </h2>
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {formData.name || 'Tech Stack Name'}
+                  {formData.name || "Tech Stack Name"}
                 </h3>
                 {formData.description && (
                   <p className="text-gray-600 dark:text-gray-400">
@@ -286,8 +318,8 @@ export function TechStackProfilePage() {
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  {formData.technologies.map(techId => {
-                    const tech = technologies.find(t => t.id === techId);
+                  {formData.technologies.map((techId) => {
+                    const tech = technologies.find((t) => t.id === techId);
                     if (!tech) return null;
                     return (
                       <div
@@ -313,7 +345,7 @@ export function TechStackProfilePage() {
         <div className="flex justify-end gap-4">
           <button
             type="button"
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate("/settings")}
             className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
           >
             Cancel
@@ -331,7 +363,7 @@ export function TechStackProfilePage() {
             ) : (
               <>
                 <Check className="w-4 h-4" />
-                {id ? 'Update Tech Stack' : 'Create Tech Stack'}
+                {id ? "Update Tech Stack" : "Create Tech Stack"}
               </>
             )}
           </button>
