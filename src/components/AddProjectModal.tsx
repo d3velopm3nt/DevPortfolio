@@ -5,6 +5,7 @@ import { techCategories } from "../data/techCategories";
 import { supabase } from "../lib/supabase";
 import { technologies } from "../data/technologies";
 import { PlatformSelector } from "./projects/PlatformSelector";
+import { requestThumbnailGeneration } from "../services/thumbnailService";
 
 interface AddProjectModalProps {
   isOpen: boolean;
@@ -140,6 +141,18 @@ export function AddProjectModal({
           .insert(platformInserts);
 
         if (platformError) throw platformError;
+      }
+
+      // Generate thumbnail if live URL is provided
+      if (liveUrl) {
+        // Don't await this - let it happen in the background
+        requestThumbnailGeneration(project.id, liveUrl)
+          .then(thumbnailUrl => {
+            console.log("Thumbnail generated:", thumbnailUrl);
+          })
+          .catch(err => {
+            console.error("Error during thumbnail generation:", err);
+          });
       }
 
       onProjectAdded();

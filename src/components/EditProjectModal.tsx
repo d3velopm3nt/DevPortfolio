@@ -4,6 +4,7 @@ import { Technology, TechStackSection } from "../types";
 import { techCategories } from "../data/techCategories";
 import { supabase } from "../lib/supabase";
 import { technologies } from "../data/technologies";
+import { requestThumbnailGeneration } from "../services/thumbnailService";
 
 interface EditProjectModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function EditProjectModal({
   useEffect(() => {
     const fetchTechnologies = async () => {
       try {
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { data, error } = await supabase
           .from("technologies")
           .select("id, name");
@@ -59,6 +61,7 @@ export function EditProjectModal({
   useEffect(() => {
     const fetchProject = async () => {
       try {
+        if (!supabase) throw new Error("Supabase client not initialized");
         const { data, error } = await supabase
           .from("projects")
           .select(
@@ -103,13 +106,14 @@ export function EditProjectModal({
     setError(null);
 
     try {
+      if (!supabase) throw new Error("Supabase client not initialized");
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
       // Start a transaction by using RPC
-      const { data: result, error: rpcError } = await supabase.rpc(
+      const { error: rpcError } = await supabase.rpc(
         "update_project",
         {
           p_project_id: projectId,
@@ -122,6 +126,18 @@ export function EditProjectModal({
       );
 
       if (rpcError) throw rpcError;
+
+      // Generate thumbnail if live URL is provided
+      if (liveUrl) {
+        // Don't await this - let it happen in the background
+        requestThumbnailGeneration(projectId, liveUrl)
+          .then(thumbnailUrl => {
+            console.log("Thumbnail updated:", thumbnailUrl);
+          })
+          .catch(err => {
+            console.error("Error during thumbnail generation:", err);
+          });
+      }
 
       onProjectUpdated();
       onClose();

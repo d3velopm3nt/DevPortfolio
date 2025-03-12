@@ -1,13 +1,13 @@
-import express from 'express';
+import express, { Request, Response, Router } from 'express';
 import { captureWebsiteThumbnail } from '../services/screenshotService';
 import { createClient } from '@supabase/supabase-js';
 
-const router = express.Router();
+const router: Router = express.Router();
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL as string;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.post('/thumbnail', async (req, res) => {
+router.post('/thumbnail', async (req: Request, res: Response) => {
   try {
     console.log('Generating thumbnail...');
     const { projectId, websiteUrl } = req.body;
